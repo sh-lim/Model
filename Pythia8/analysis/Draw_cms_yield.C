@@ -118,10 +118,10 @@ void Draw_cms_yield(){
 			}
 
 			h1d_Yassociated_pT[imult]->SetBinContent(ipt+1,Y_associated); 
-			h1d_Yassociated_pT[imult]->SetBinError(ipt+1,Y_associated_err); 
+			h1d_Yassociated_pT[imult]->SetBinError(ipt+1,sqrt(Y_associated_err)); 
 
 			h1d_Yassociated_mult[ipt]->SetBinContent(imult+1,Y_associated); 
-			h1d_Yassociated_mult[ipt]->SetBinError(imult+1,Y_associated_err); 
+			h1d_Yassociated_mult[ipt]->SetBinError(imult+1,sqrt(Y_associated_err)); 
 
 		}//ipt
 	}//imult
