@@ -12,7 +12,10 @@ void Draw_cms_yield(){
 	const float ptbin[npt+1] = {0.2, 1.0, 2.0, 3.0, 4.0};
 
 	const int nmult = 4;
-	const int multbin[nmult+1] = {0, 35, 80, 105, 150};
+	const float multbin[nmult+1] = {0, 35, 80, 105, 150};
+
+	const int nMarker[nmult] = {20, 21, 24, 25};
+	const int nColor[nmult] = {1, 2, 4, 8};
 
 	TH2D *h2d_same[nmult][npt];
 	TH2D *h2d_mixed[nmult][npt];
@@ -29,6 +32,17 @@ void Draw_cms_yield(){
 	TH1D *h1d_dphi_zyam[nmult][npt];
 
 	TF1 *f1d_dphi[nmult][npt];
+
+	TH1D *h1d_Yassociated_pT[nmult];
+	TH1D *h1d_Yassociated_mult[npt];
+
+	for (int imult=0; imult<nmult; imult++){
+		h1d_Yassociated_pT[imult] = new TH1D(Form("h1d_Yassociated_pT_mult%02d",imult),"",npt,ptbin);
+	}
+
+	for (int ipt=0; ipt<npt; ipt++){
+		h1d_Yassociated_mult[ipt] = new TH1D(Form("h1d_Yassociated_mult_pt%02d",ipt),"",nmult,multbin);
+	}
 
 	for (int imult=0; imult<nmult; imult++){
 		hntrig_same[imult] = (TH1D*)infile->Get(Form("hntrig_same_mult%02d",imult));
@@ -87,12 +101,27 @@ void Draw_cms_yield(){
 
 			//ZYAM subtraction
 			float zyam = f1d_dphi[imult][ipt]->GetMinimum(-const_pi/2,const_pi/2);
+			float Y_associated = 0.0; 
+			float Y_associated_err = 0.0; 
 
 			h1d_dphi_zyam[imult][ipt] = (TH1D*)h1d_dphi_same[imult][ipt]->Clone(Form("h1d_dphi_zyam_mult%02d_pt%02d",imult,ipt));
 			for (int iphi=0; iphi<h1d_dphi_zyam[imult][ipt]->GetNbinsX(); iphi++){
 				float val = h1d_dphi_zyam[imult][ipt]->GetBinContent(iphi+1);
 				h1d_dphi_zyam[imult][ipt]->SetBinContent(iphi+1, val-zyam);
+
+				//associated yield |dphi|<1.2
+				float dphi = h1d_dphi_zyam[imult][ipt]->GetBinCenter(iphi+1); 
+				if ( fabs(dphi)<1.2 ){
+					Y_associated += h1d_dphi_zyam[imult][ipt]->GetBinContent(iphi+1);
+					Y_associated_err += h1d_dphi_zyam[imult][ipt]->GetBinError(iphi+1)*h1d_dphi_zyam[imult][ipt]->GetBinError(iphi+1);
+				}
 			}
+
+			h1d_Yassociated_pT[imult]->SetBinContent(ipt+1,Y_associated); 
+			h1d_Yassociated_pT[imult]->SetBinError(ipt+1,Y_associated_err); 
+
+			h1d_Yassociated_mult[ipt]->SetBinContent(imult+1,Y_associated); 
+			h1d_Yassociated_mult[ipt]->SetBinError(imult+1,Y_associated_err); 
 
 		}//ipt
 	}//imult
@@ -131,7 +160,7 @@ void Draw_cms_yield(){
 			leg->SetTextFont(43);
 			leg->SetTextSize(14);
 			leg->AddEntry("","Pythia8 pp 13 TeV","h");
-			leg->AddEntry("",Form("%d#leqN_{trk}<%d",multbin[imult],multbin[imult+1]),"h");
+			leg->AddEntry("",Form("%d#leqN_{trk}<%d",int(multbin[imult]),int(multbin[imult+1])),"h");
 			leg->AddEntry("",Form("%g<p_{T}<%g GeV/c",ptbin[ipt],ptbin[ipt+1]),"h");
 			leg->Draw();
 		}
@@ -169,7 +198,7 @@ void Draw_cms_yield(){
 			leg->SetTextFont(43);
 			leg->SetTextSize(14);
 			leg->AddEntry("","Pythia8 pp 13 TeV","h");
-			leg->AddEntry("",Form("%d#leqN_{trk}<%d",multbin[imult],multbin[imult+1]),"h");
+			leg->AddEntry("",Form("%d#leqN_{trk}<%d",int(multbin[imult]),int(multbin[imult+1])),"h");
 			leg->AddEntry("",Form("%g<p_{T}<%g GeV/c",ptbin[ipt],ptbin[ipt+1]),"h");
 			leg->Draw();
 
@@ -204,12 +233,63 @@ void Draw_cms_yield(){
 			leg->SetTextFont(43);
 			leg->SetTextSize(14);
 			leg->AddEntry("","Pythia8 pp 13 TeV","h");
-			leg->AddEntry("",Form("%d#leqN_{trk}<%d",multbin[imult],multbin[imult+1]),"h");
+			leg->AddEntry("",Form("%d#leqN_{trk}<%d",int(multbin[imult]),int(multbin[imult+1])),"h");
 			leg->AddEntry("",Form("%g<p_{T}<%g GeV/c",ptbin[ipt],ptbin[ipt+1]),"h");
 			leg->Draw();
 
 		}
 	}
 
+	TCanvas *cfig3 = new TCanvas("cfig3","cfig3",1.1*2*400,400);
+	cfig3->Divide(2,1);
+
+	cfig3->cd(1);
+	SetPadStyle();
+
+	htmp = (TH1D*)gPad->DrawFrame(0,-0.01,4,0.05);
+	SetHistoStyle("p_{T} (GeV/c)","Associated yield/(GeV/c)","",20,16);
+
+	{
+		TLegend *leg = new TLegend(0.2,0.65,0.65,0.95);
+		leg->SetFillStyle(0);
+		leg->SetBorderSize(0);
+		leg->SetTextFont(43);
+		leg->SetTextSize(18);
+		leg->AddEntry("","Pythia8 pp 13 TeV","h");
+
+		for (int imult=0; imult<nmult; imult++){
+			h1d_Yassociated_pT[imult]->SetMarkerStyle(nMarker[imult]);
+			h1d_Yassociated_pT[imult]->SetLineColor(nColor[imult]);
+			h1d_Yassociated_pT[imult]->SetMarkerColor(nColor[imult]);
+			h1d_Yassociated_pT[imult]->Draw("p same");
+			leg->AddEntry(h1d_Yassociated_pT[imult],Form("%d#leqN_{trk}<%d",int(multbin[imult]),int(multbin[imult+1])),"PL");
+		}
+		leg->Draw();
+	}
+
+
+	cfig3->cd(2);
+	SetPadStyle();
+
+	htmp = (TH1D*)gPad->DrawFrame(0,-0.01,150,0.05);
+	SetHistoStyle("Multiplicity","Associated yield/(GeV/c)","",20,16);
+
+	{
+		TLegend *leg = new TLegend(0.2,0.65,0.65,0.95);
+		leg->SetFillStyle(0);
+		leg->SetBorderSize(0);
+		leg->SetTextFont(43);
+		leg->SetTextSize(18);
+		leg->AddEntry("","Pythia8 pp 13 TeV","h");
+
+		for (int ipt=0; ipt<npt; ipt++){
+			h1d_Yassociated_mult[ipt]->SetMarkerStyle(nMarker[ipt]);
+			h1d_Yassociated_mult[ipt]->SetLineColor(nColor[ipt]);
+			h1d_Yassociated_mult[ipt]->SetMarkerColor(nColor[ipt]);
+			h1d_Yassociated_mult[ipt]->Draw("p same");
+			leg->AddEntry(h1d_Yassociated_mult[ipt],Form("%g<p_{T}<%g (GeV/c)",ptbin[ipt],ptbin[ipt+1]),"PL");
+		}
+		leg->Draw();
+	}
 
 }
