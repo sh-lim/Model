@@ -32,6 +32,7 @@ void SetHistoStyle(std::string xtitle="", std::string ytitle="", std::string zti
 	htmp->GetYaxis()->SetTitleSize(size_title);
 	htmp->GetYaxis()->SetTitle(ytitle.c_str());
 	htmp->GetYaxis()->SetNdivisions(9,5,0);
+
 	htmp->GetXaxis()->SetLabelFont(43);
 	htmp->GetXaxis()->SetTitleFont(43);
 	//htmp->GetXaxis()->SetLabelFont(102);
@@ -42,8 +43,8 @@ void SetHistoStyle(std::string xtitle="", std::string ytitle="", std::string zti
 	//htmp->GetXaxis()->SetNdivisions(505);
 	htmp->GetXaxis()->SetNdivisions(9,2,0);
 
-	htmp->GetZaxis()->SetLabelFont(63);
-	htmp->GetZaxis()->SetTitleFont(63);
+	htmp->GetZaxis()->SetLabelFont(43);
+	htmp->GetZaxis()->SetTitleFont(43);
 	htmp->GetZaxis()->SetTitleOffset(1.3);
 	//htmp->GetZaxis()->SetLabelSize(20);
 	//htmp->GetZaxis()->SetTitleSize(22);
