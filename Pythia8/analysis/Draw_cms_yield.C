@@ -4,7 +4,7 @@ void Draw_cms_yield(){
 
 	gStyle->SetOptStat(0);
 
-	TFile *infile = new TFile("../CMS-kinematics/outfile_hist_pp13TeV_set00_grp000_try001.root","read");
+	TFile *infile = new TFile("../CMS-kinematics/outfile_hist_pp13TeV_set00_grp001_try001.root","read");
 
 	const float const_pi = TMath::Pi();
 
@@ -101,6 +101,7 @@ void Draw_cms_yield(){
 
 			//ZYAM subtraction
 			float zyam = f1d_dphi[imult][ipt]->GetMinimum(-const_pi/2,const_pi/2);
+			float zyam_x = f1d_dphi[imult][ipt]->GetMinimumX(-const_pi/2,const_pi/2);
 			float Y_associated = 0.0; 
 			float Y_associated_err = 0.0; 
 
@@ -111,9 +112,11 @@ void Draw_cms_yield(){
 
 				//associated yield |dphi|<1.2
 				float dphi = h1d_dphi_zyam[imult][ipt]->GetBinCenter(iphi+1); 
-				if ( fabs(dphi)<1.2 ){
-					Y_associated += h1d_dphi_zyam[imult][ipt]->GetBinContent(iphi+1);
-					Y_associated_err += h1d_dphi_zyam[imult][ipt]->GetBinError(iphi+1)*h1d_dphi_zyam[imult][ipt]->GetBinError(iphi+1);
+				float ddphi = h1d_dphi_zyam[imult][ipt]->GetBinWidth(iphi+1);
+				//if ( fabs(dphi)<1.2 ){
+				if ( fabs(dphi)<fabs(zyam_x) ){
+					Y_associated += h1d_dphi_zyam[imult][ipt]->GetBinContent(iphi+1)*ddphi;
+					Y_associated_err += h1d_dphi_zyam[imult][ipt]->GetBinError(iphi+1)*h1d_dphi_zyam[imult][ipt]->GetBinError(iphi+1)*ddphi;
 				}
 			}
 
@@ -192,7 +195,9 @@ void Draw_cms_yield(){
 			f1d_dphi[imult][ipt]->SetLineStyle(2);
 			f1d_dphi[imult][ipt]->Draw("same");
 
-			TLegend *leg = new TLegend(0.25,0.78,0.65,0.95);
+			float zyam_x = f1d_dphi[imult][ipt]->GetMinimumX(-const_pi/2,const_pi/2);
+
+			TLegend *leg = new TLegend(0.25,0.73,0.65,0.95);
 			leg->SetFillStyle(0);
 			leg->SetBorderSize(0);
 			leg->SetTextFont(43);
@@ -200,6 +205,7 @@ void Draw_cms_yield(){
 			leg->AddEntry("","Pythia8 pp 13 TeV","h");
 			leg->AddEntry("",Form("%d#leqN_{trk}<%d",int(multbin[imult]),int(multbin[imult+1])),"h");
 			leg->AddEntry("",Form("%g<p_{T}<%g GeV/c",ptbin[ipt],ptbin[ipt+1]),"h");
+			leg->AddEntry("",Form("#Delta #phi_{ZYAM}=%4.2f",fabs(zyam_x)),"h");
 			leg->Draw();
 
 		}
