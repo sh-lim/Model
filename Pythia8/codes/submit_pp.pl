@@ -2,12 +2,12 @@
 
 use Cwd;
 
-$package = "pp13TeV_set00";
+$package = "pp13TeV_set05";
 $maindir = getcwd();
 $srcdir = "/alice/home/shlim/work/Pythia/codes";
 $datadir = "/alice/data/shlim";
 
-$groupnum = 1;
+$groupnum = 99;
 $progname = "mainEx00";
 
 $rundir = "${maindir}/run_${package}_grp${groupnum}";
@@ -15,7 +15,7 @@ mkdir $rundir;
 
 $jobname = sprintf("${package}_grp%03d",${groupnum});
 
-for ($irun=0; $irun<5000; $irun++){
+for ($irun=0; $irun<10; $irun++){
 
 #	sleep 1;
 
@@ -29,7 +29,7 @@ for ($irun=0; $irun<5000; $irun++){
 #	print FILE "Requirements = CPU_Speed>=1\n";
 #	print FILE "Rank = CPU_Speed\n";
 	print FILE "Getenv = true\n";
-	print FILE "Priority = +20\n";
+	print FILE "Priority = +10\n";
 	print FILE "Executable = jobscript\n";
 	print FILE "JobBatchName = ${jobname}\n";
 	print FILE "Log = jobscript.log\n";
@@ -54,7 +54,7 @@ for ($irun=0; $irun<5000; $irun++){
 	print FILE "Next:numberShowEvent = 1\n";
 	print FILE "Beams:idA = 2212\n";
 	print FILE "Beams:idB = 2212\n";
-	print FILE "Beams:eCM = 14000.\n";
+	print FILE "Beams:eCM = 13000.\n";
 	print FILE "SoftQCD:nonDiffractive = on\n";
 #	print FILE "SoftQCD:inelastic = on\n";
 #	print FILE "HardQCD:all = on\n";
@@ -75,6 +75,9 @@ for ($irun=0; $irun<5000; $irun++){
 	print FILE "Ropewalk:RopeHadronization = on\n";
 	print FILE "Ropewalk:doShoving = on\n";
 	print FILE "Ropewalk:doFlavour = on\n";
+	print FILE "Ropewalk:gAmplitude = 2.0\n";
+#	print FILE "Ropewalk:tShove = 10.0\n";
+#	print FILE "Ropewalk:pTcut = 2.75\n";
 	close(FILE);
 
 #	$seednum = int(rand(100000000));
@@ -85,7 +88,8 @@ for ($irun=0; $irun<5000; $irun++){
 
 	open(FILE, ">jobscript");
 	print FILE "#!/bin/bash\n";
-	print FILE "sleep ${randnum}; source /pool/kiafenv\n\n\n";
+	print FILE "sleep ${randnum}\n\n\n";
+#	print FILE "sleep ${randnum}; source /pool/kiafenv\n\n\n";
 
 	print FILE "mkdir -p $grpdir\n\n";
 
