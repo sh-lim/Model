@@ -125,7 +125,8 @@ void Draw_cms(const char *dataset="pp13TeV_nondiffractive_grp0_try3", const bool
 		if ( im>=12 ) continue;
 
 		c1->cd(im+1);
-		SetPadStyle(0.20,0.01,0.14,0.01);
+		//SetPadStyle(0.20,0.01,0.14,0.01);
+		SetPadStyle();
 
 		float max = TMath::Max(h1d_same_dphi_long[im][0]->GetMaximum(),h1d_same_dphi_short[im][0]->GetMaximum());
 		float min = TMath::Min(h1d_same_dphi_long[im][0]->GetMinimum(),h1d_same_dphi_short[im][0]->GetMinimum());
