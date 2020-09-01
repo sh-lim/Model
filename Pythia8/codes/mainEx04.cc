@@ -66,26 +66,34 @@ int main() {
 
 		i_np = 0;
 
-		bool bPSI = false;
+		int nPSI = 0;
 
 		for (int i = 0; i < event.size(); ++i) {
 			if ( !(event[i].isFinal()) ) continue;
 
 			int tmp_id = event[i].id();
 
-			if ( tmp_id==443 || tmp_id==100443 ){
-				bPSI = true;
+			if ( !(abs(tmp_id)==11 || abs(tmp_id)==13) ) continue;
+
+			int tmp_pid = event[event[i].mother1()].id();
+
+			if ( tmp_pid==443 || tmp_pid==100443 ){
+				nPSI++;
 			}
 		}
 
-		if ( !bPSI ) continue;
+		if ( nPSI<2 ) continue;
+		//cout << nPSI << endl;
+		//if ( !bPSI ) continue;
 
 		for (int i = 0; i < event.size(); ++i) {
 
 			//if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
-			if ( !(event[i].isFinal()) ) continue;
+			//if ( !(event[i].isFinal()) ) continue;
 
-			i_p_id[i_np] = event[i].id();
+			int tmp_id = event[i].id();
+
+			if ( !(event[i].isFinal() || tmp_id==443 || tmp_id==100443) ) continue;
 
 			float tmp_pt = event[i].pT();
 			float tmp_eta = event[i].eta();
@@ -94,6 +102,7 @@ int main() {
 
 			if ( fabs(tmp_eta)>5.0 ) continue;
 
+			i_p_id[i_np] = tmp_id;
 			f_p_pt[i_np] = tmp_pt;
 			f_p_eta[i_np] = tmp_eta;
 			f_p_phi[i_np] = tmp_phi;
