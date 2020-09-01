@@ -65,8 +65,8 @@ int main() {
     }
 
 		i_np = 0;
-
-		int nPSI = 0;
+		set<int> set_pid;
+		set<int>::iterator iter;
 
 		for (int i = 0; i < event.size(); ++i) {
 			if ( !(event[i].isFinal()) ) continue;
@@ -78,23 +78,37 @@ int main() {
 			int tmp_pid = event[event[i].mother1()].id();
 
 			if ( tmp_pid==443 || tmp_pid==100443 ){
-				nPSI++;
+				set_pid.insert(event[i].mother1());
 			}
 		}
 
-		if ( nPSI<2 ) continue;
-		//cout << nPSI << endl;
-		//if ( !bPSI ) continue;
+		if ( set_pid.size()<1 ) continue;
+
+		for (iter=set_pid.begin(); iter!=set_pid.end(); iter++){
+
+			int tmp_index = *iter;
+
+			int tmp_id = event[tmp_index].id();
+			float tmp_pt = event[tmp_index].pT();
+			float tmp_eta = event[tmp_index].eta();
+			float tmp_phi = event[tmp_index].phi();
+			bool tmp_charge = event[tmp_index].isCharged();
+
+			i_p_id[i_np] = tmp_id;
+			f_p_pt[i_np] = tmp_pt;
+			f_p_eta[i_np] = tmp_eta;
+			f_p_phi[i_np] = tmp_phi;
+			f_p_charge[i_np] = tmp_charge;
+
+			i_np++;
+		}
 
 		for (int i = 0; i < event.size(); ++i) {
 
-			//if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
+			if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
 			//if ( !(event[i].isFinal()) ) continue;
 
 			int tmp_id = event[i].id();
-
-			if ( !(event[i].isFinal() || tmp_id==443 || tmp_id==100443) ) continue;
-
 			float tmp_pt = event[i].pT();
 			float tmp_eta = event[i].eta();
 			float tmp_phi = event[i].phi();
