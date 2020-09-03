@@ -1,4 +1,4 @@
-//CMS acceptance
+//CMS acceptance (vs pT)
 
 #include <iostream>
 #include <fstream>
@@ -17,7 +17,7 @@ void make_hist_pp13TeV_02(const char *fname="file.lst"){
 
 	//CMS pt range
 	const float pt_min = 0.2;
-	const float pt_max = 4.0;
+	const float pt_max = 6.0;
 	const float eta_max = 2.5;
 	const float deta_max = 5.0;
 	//ATLAS pt range
@@ -34,11 +34,14 @@ void make_hist_pp13TeV_02(const char *fname="file.lst"){
 	const float deta_cut = 2.0;
 	const float const_pi = TMath::Pi();
 
-	const int nmult = 4;
+	const int nmult = 3;
 	//const float cut_mult[nmult+1] = {100, 60, 20, 5, 1, 0};
 
-	const int npt = 4;
-	const float ptbin[npt+1] = {0.2, 1.0, 2.0, 3.0, 4.0};
+	//const int npt = 4;
+	//const float ptbin[npt+1] = {0.2, 1.0, 2.0, 3.0, 4.0};
+
+	const int npt = 8;
+	const float ptbin[npt+1] = {0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 6.0};
 
 	/*
 	TFile *infile_ref = new TFile("/alice/home/shlim/work/Pythia/jobs/outfile_hist_pp13TeV_set00_grp000_try000.root","read");
@@ -71,8 +74,8 @@ void make_hist_pp13TeV_02(const char *fname="file.lst"){
 		for (int ipt=0; ipt<npt; ipt++){
 			h2d_same_dphi_deta[im][ipt] = new TH2D(Form("h2d_same_dphi_deta_mult%02d_pt%02d",im,ipt),"",96,-const_pi/2,3*const_pi/2,100,-5.0,5.0);
 			h2d_mixed_dphi_deta[im][ipt] = new TH2D(Form("h2d_mixed_dphi_deta_mult%02d_pt%02d",im,ipt),"",96,-const_pi/2,3*const_pi/2,100,-5.0,5.0);
-		}
-	}
+		}//ipt
+	}//im
 
 	TH2D *heta_pt_ana = new TH2D("heta_pt_ana","",100,-5,5,100,0,10);
 
@@ -123,14 +126,14 @@ void make_hist_pp13TeV_02(const char *fname="file.lst"){
 					nmult_mid_nocut++;
 				}
 
-				if ( fabs(f_p_eta[ip])<2.5 && f_p_pt[ip]>0.2 ){
+				if ( fabs(f_p_eta[ip])<2.5 && f_p_pt[ip]>0.4 ){
 					nmult_mid++;
 				}
 
 				if ( fabs(f_p_eta[ip])>3.1 && fabs(f_p_eta[ip])<4.9 ){
 					nmult_fwd++;
 				}
-			}
+			}//i_np
 
 			if ( nmult_mid_nocut>0 ){
 				hevent_mult_mid_fwd->Fill(nmult_mid, nmult_fwd);
@@ -138,10 +141,11 @@ void make_hist_pp13TeV_02(const char *fname="file.lst"){
 
 			int ind_mult = -1;
 
-			if ( nmult_mid<35 ) ind_mult = 0;
-			else if ( nmult_mid<80 ) ind_mult = 1;
-			else if ( nmult_mid<105 ) ind_mult = 2;
-			else ind_mult = 3;
+			if ( nmult_mid<10 ) ind_mult = 0;
+			else if ( nmult_mid>=10 && nmult_mid<20 ) ind_mult = 1;
+			else if ( nmult_mid>=120 ) ind_mult = 2;
+
+			if ( ind_mult<0 ) continue;
 
 			hevent_mult_mid->Fill(ind_mult+0.5, nmult_mid); 
 			hevent_mult_fwd->Fill(ind_mult+0.5, nmult_fwd); 
@@ -198,7 +202,7 @@ void make_hist_pp13TeV_02(const char *fname="file.lst"){
 					h2d_mixed_dphi_deta[ind_mult][ind_pt_j]->Fill(dphi, deta);
 				}//jj
 
-			}//
+			}//ip
 
 			//fill mixed event pool
 			vec_pt[ind_mult].clear();
@@ -221,7 +225,6 @@ void make_hist_pp13TeV_02(const char *fname="file.lst"){
 	}//
 
 	TFile *outfile = new TFile("outfile_hist.root","recreate");
-
 
 	for (int im=0; im<nmult; im++){
 		hntrig_same[im]->Write();
