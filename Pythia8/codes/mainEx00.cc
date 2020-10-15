@@ -59,11 +59,16 @@ int main() {
 	float f_p_eta[5000];
 	float f_p_phi[5000];
 
+	float f_p_vx[5000];
+	float f_p_vy[5000];
+	float f_p_vz[5000];
+	float f_p_vt[5000];
+
 	float f_jet_pt[100];
 	float f_jet_eta[100];
 	float f_jet_phi[100];
 
-	const float const_pt_cut = 0.2;
+	//const float const_pt_cut = 0.2;
 
 	// Tree output
 	auto T = new TTree("T","Pythia event");
@@ -77,10 +82,17 @@ int main() {
 	T->Branch("p_eta",f_p_eta,"p_eta[np]/F");
 	T->Branch("p_phi",f_p_phi,"p_phi[np]/F");
 
+	T->Branch("p_vx",f_p_vx,"p_vx[np]/F");
+	T->Branch("p_vy",f_p_vy,"p_vy[np]/F");
+	T->Branch("p_vz",f_p_vz,"p_vz[np]/F");
+	T->Branch("p_vt",f_p_vt,"p_vt[np]/F");
+
+	/*
 	T->Branch("njet",&i_njet,"njet/I");
 	T->Branch("jet_pt",f_jet_pt,"jet_pt[njet]/F");
 	T->Branch("jet_eta",f_jet_eta,"jet_eta[njet]/F");
 	T->Branch("jet_phi",f_jet_phi,"jet_phi[njet]/F");
+	*/
 
   // Begin event loop.
   int iAbort = 0;
@@ -108,6 +120,7 @@ int main() {
 			<< endl;
 		*/
 
+		/*
 		fjInputs.resize(0);
     for (int i = 0; i < event.size(); ++i) {
 			if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
@@ -124,6 +137,7 @@ int main() {
 		fastjet::ClusterSequence clustSeq(fjInputs, jetDef);
 		inclusiveJets = clustSeq.inclusive_jets(5.0);
 		sortedJets = sorted_by_pt(inclusiveJets);
+		*/
 
 		i_np = 0;
     for (int i = 0; i < event.size(); ++i) {
@@ -137,11 +151,21 @@ int main() {
 			float tmp_phi = event[i].phi();
 
 			if ( fabs(tmp_eta)>6.0 ) continue;
-			if ( fabs(tmp_eta)<1.5 && tmp_pt<const_pt_cut ) continue;
+			//if ( fabs(tmp_eta)<1.5 && tmp_pt<const_pt_cut ) continue;
+
+			float xprod = event[i].xProd();
+			float yprod = event[i].yProd();
+			float zprod = event[i].zProd();
+			float tprod = event[i].tProd();
 
 			f_p_pt[i_np] = tmp_pt;
 			f_p_eta[i_np] = tmp_eta;
 			f_p_phi[i_np] = tmp_phi;
+
+			f_p_vx[i_np] = xprod;
+			f_p_vy[i_np] = yprod;
+			f_p_vz[i_np] = zprod;
+			f_p_vt[i_np] = tprod;
 
 			/*
 			int status = event[i].status();
@@ -173,7 +197,7 @@ int main() {
   // Final statistics. Normalize and output histograms.
   pythia.stat();
 
-	TFile *outfile = new TFile("Pythia8_event.root","recreate");
+	TFile *outfile = new TFile("Pythia8_event_mainEx00.root","recreate");
 	T->Write();
 	outfile->Close();
 
