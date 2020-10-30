@@ -20,7 +20,7 @@ void Draw_frag2(){
 		gPad->SetRightMargin(0.15);
 
 		htmp = (TH1D*)gPad->DrawFrame(-1.5,0,1.5,1.2*hjetR04_eta->GetMaximum());
-		SetHistoStyle("Jet #eta","N","",16,16);
+		SetHistoStyle("Jet #eta","N","",20,16);
 		hjetR04_eta->SetLineColor(1);
 		hjetR04_eta->SetLineWidth(2);
 		hjetR04_eta->Draw("same");
@@ -30,7 +30,7 @@ void Draw_frag2(){
 		gPad->SetLogy();
 
 		htmp = (TH1D*)gPad->DrawFrame(0,1,200,1.5*hjetR04_pt->GetMaximum());
-		SetHistoStyle("Jet p_{T} (GeV/c)","N","",16,16);
+		SetHistoStyle("Jet p_{T} (GeV/c)","N","",20,16);
 		hjetR04_pt->SetLineColor(1);
 		hjetR04_pt->SetLineWidth(2);
 		hjetR04_pt->Draw("same");
@@ -40,6 +40,23 @@ void Draw_frag2(){
 	const int jetpt[nptbin+1] = {25, 40, 60, 80, 110};
 
 	const int nColor[nptbin] = {1, 2, 4, 6};
+	const int nMarker[nptbin] = {20, 21, 24, 25};
+
+	TFile *infileZ[nptbin];
+	TFile *infileJT[nptbin];
+
+	TGraphAsymmErrors *gZ[nptbin];
+	TGraphAsymmErrors *gJT[nptbin];
+
+	for (int iset=0; iset<nptbin; iset++){
+		infileZ[iset] = new TFile(Form("/Users/shlim/Work/PNU-NPL/Research/Pythia8/Jet/HEPData-ins929691-v1-Table_%d.root",iset+1),"read");
+		infileJT[iset] = new TFile(Form("/Users/shlim/Work/PNU-NPL/Research/Pythia8/Jet/HEPData-ins929691-v1-Table_%d.root",iset+21),"read");
+		TDirectoryFile *tdf = (TDirectoryFile*)infileZ[iset]->Get(Form("Table %d",iset+1));
+		gZ[iset] = (TGraphAsymmErrors*)tdf->Get("Graph1D_y1");
+
+		tdf = (TDirectoryFile*)infileJT[iset]->Get(Form("Table %d",iset+21));
+		gJT[iset] = (TGraphAsymmErrors*)tdf->Get("Graph1D_y1");
+	}
 
 	TH2D *hjetR04_jt_pt = (TH2D*)infile->Get("hjetR04_jt_pt");
 	hjetR04_jt_pt->Sumw2();
@@ -98,56 +115,41 @@ void Draw_frag2(){
 		//gPad->SetLogx();
 
 		htmp = (TH1D*)gPad->DrawFrame(0.0,0.0,3,20);
-		SetHistoStyle("p_{T}^{rel} (GeV/c)","f(p_{T}^{rel})","",16,16);
+		SetHistoStyle("p_{T}^{rel} (GeV/c)","f(p_{T}^{rel})","",20,16);
 
 		hjetR04_jt[0]->Draw("same");
 		hjetR04_jt[1]->Draw("same");
 		hjetR04_jt[2]->Draw("same");
 		hjetR04_jt[3]->Draw("same");
 
+		for (int iset=0; iset<nptbin; iset++){
+			gJT[iset]->SetMarkerStyle(nMarker[iset]);
+			gJT[iset]->SetMarkerColor(nColor[iset]);
+			gJT[iset]->SetLineColor(nColor[iset]);
+			gJT[iset]->Draw("P");
+		}
+
 		c2->cd(2);
 		SetPadStyle();
 		gPad->SetLogy();
 		gPad->SetLogx();
 
-		htmp = (TH1D*)gPad->DrawFrame(0.01,0.02,0.8,1e3);
-		SetHistoStyle("z","F(z)","",16,16);
+		htmp = (TH1D*)gPad->DrawFrame(0.01,0.02,1,1e3);
+		SetHistoStyle("z","F(z)","",20,16);
 
 		hjetR04_zh[0]->Draw("same");
 		hjetR04_zh[1]->Draw("same");
 		hjetR04_zh[2]->Draw("same");
 		hjetR04_zh[3]->Draw("same");
 
+		for (int iset=0; iset<nptbin; iset++){
+			gZ[iset]->SetMarkerStyle(nMarker[iset]);
+			gZ[iset]->SetMarkerColor(nColor[iset]);
+			gZ[iset]->SetLineColor(nColor[iset]);
+			gZ[iset]->Draw("P");
+		}
+
 	}
 
 
-	return;
-
-	/*
-
-	for (int izh=0; izh<hjetR04_zh->GetNbinsX(); izh++){
-		float dzh = hjetR04_zh->GetBinWidth(izh+1);
-		float zh = hjetR04_zh->GetBinCenter(izh+1);
-
-		float xx = hjetR04_zh->GetBinContent(izh+1);
-		float xx_err = hjetR04_zh->GetBinError(izh+1);
-
-
-		hjetR04_zh->SetBinContent(izh+1, xx/dzh/njet_eta05);
-		hjetR04_zh->SetBinError(izh+1, xx_err/dzh/njet_eta05);
-	}
-
-	TCanvas *c1 = new TCanvas("c1","c1",1.2*3*300,2*300);
-	c1->Divide(3,2);
-
-	c1->cd(1);
-	SetPadStyle();
-	gPad->SetRightMargin(0.15);
-
-	htmp = (TH1D*)gPad->DrawFrame(-1.5,0,1.5,200);
-	SetHistoStyle("Jet #eta","Jet p_{T} (GeV/c)","",16,16);
-
-	hjetR04_eta_pt->Draw("colz same");
-
-	*/
 }
