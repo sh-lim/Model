@@ -12,7 +12,7 @@
 #include "TTree.h"
 #include "TFile.h"
 
-#include "Pythia8Plugins/FastJet3.h"
+//#include "Pythia8Plugins/FastJet3.h"
 
 using namespace Pythia8;
 
@@ -45,25 +45,33 @@ int main() {
   //if (power ==  1)      algorithm = fastjet::kt_algorithm;
   //fastjet::JetDefinition jetDef(algorithm, R);
   // there's no need for a pointer to the jetDef (it's a fairly small object)
-  fastjet::JetDefinition jetDef(fastjet::genkt_algorithm, 0.4, -1);
-  std::vector <fastjet::PseudoJet> fjInputs;
+  //fastjet::JetDefinition jetDef(fastjet::genkt_algorithm, 0.4, -1);
+  //std::vector <fastjet::PseudoJet> fjInputs;
 
 	float f_scale;
 	float f_bMPI;
 	int i_nMPI;
 	int i_np;
-	int i_njet;
+	//int i_njet;
 
-	int i_p_id[5000];
-	float f_p_pt[5000];
-	float f_p_eta[5000];
-	float f_p_phi[5000];
+	int i_p_id[2000];
+	int i_p_status[2000];
+	float f_p_pt[2000];
+	float f_p_eta[2000];
+	float f_p_phi[2000];
+	bool b_p_final[2000]; 
+	int i_p_mom1[2000];
+	int i_p_mom2[2000];
+	bool b_p_mom1_had[2000]; 
+	bool b_p_mom2_had[2000]; 
 
+	float f_p_vt[2000];
+
+	/*
 	float f_jet_pt[100];
 	float f_jet_eta[100];
 	float f_jet_phi[100];
-
-	const float const_pt_cut = 0.2;
+	*/
 
 	// Tree output
 	auto T = new TTree("T","Pythia event");
@@ -73,14 +81,17 @@ int main() {
 
 	T->Branch("np",&i_np,"np/I");
 	T->Branch("p_id",i_p_id,"p_id[np]/I");
+	T->Branch("p_status",i_p_status,"p_status[np]/I");
+	T->Branch("p_final",b_p_final,"p_final[np]/O");
 	T->Branch("p_pt",f_p_pt,"p_pt[np]/F");
 	T->Branch("p_eta",f_p_eta,"p_eta[np]/F");
 	T->Branch("p_phi",f_p_phi,"p_phi[np]/F");
+	T->Branch("p_vt",f_p_vt,"p_vt[np]/F");
 
-	T->Branch("njet",&i_njet,"njet/I");
-	T->Branch("jet_pt",f_jet_pt,"jet_pt[njet]/F");
-	T->Branch("jet_eta",f_jet_eta,"jet_eta[njet]/F");
-	T->Branch("jet_phi",f_jet_phi,"jet_phi[njet]/F");
+	T->Branch("p_mom1",i_p_mom1,"p_mom1[np]/I");
+	T->Branch("p_mom2",i_p_mom2,"p_mom2[np]/I");
+	T->Branch("p_mom1_had",b_p_mom1_had,"p_mom1_had[np]/O");
+	T->Branch("p_mom2_had",b_p_mom2_had,"p_mom2_had[np]/O");
 
   // Begin event loop.
   int iAbort = 0;
@@ -98,20 +109,10 @@ int main() {
 		i_nMPI = pythia.info.nMPI();
 
 		/*
-		cout 
-			<< pythia.event.scale() << " " 
-			<< pythia.info.bMPI() << " " 
-			<< pythia.info.nMPI() << " " 
-			//<< pythia.info.nISR() << " " 
-			//<< pythia.info.nFSRinProc() << " " 
-			//<< pythia.info.nFSRinRes() << " " 
-			<< endl;
-		*/
-
 		fjInputs.resize(0);
     for (int i = 0; i < event.size(); ++i) {
 			if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
-			if ( fabs(event[i].eta())>1.0 ) continue;
+			if ( fabs(event[i].eta())>3.0 ) continue;
 
 			// Create a PseudoJet from the complete Pythia particle.
 			fastjet::PseudoJet particleTemp = event[i];
@@ -122,58 +123,52 @@ int main() {
 		// Run Fastjet algorithm and sort jets in pT order.
 		vector <fastjet::PseudoJet> inclusiveJets, sortedJets;
 		fastjet::ClusterSequence clustSeq(fjInputs, jetDef);
-		inclusiveJets = clustSeq.inclusive_jets(10.0);
+		inclusiveJets = clustSeq.inclusive_jets(5.0);
 		sortedJets = sorted_by_pt(inclusiveJets);
-
-		//cout << "# of jets: " << sortedJets.size() << endl;
-
-		//continue;
-		if ( sortedJets.size()<1 ) continue;
-
-		i_njet = 0;
-		for (int i = 0; i < int(sortedJets.size()); ++i) {
-			f_jet_pt[i_njet] = sortedJets[i].perp(); 
-			f_jet_eta[i_njet] = sortedJets[i].rap(); 
-			f_jet_phi[i_njet] = sortedJets[i].phi_std(); 
-			i_njet++;
-		}
+		*/
 
 		i_np = 0;
     for (int i = 0; i < event.size(); ++i) {
 
-			if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
+			//if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
+			if ( !(event[i].isHadron()) || !(event[i].isCharged()) ) continue;
 
-			i_p_id[i_np] = event[i].id();
+			int status 	= event[i].status();
+			int id 			= event[i].id();
 
-			float tmp_pt = event[i].pT();
-			float tmp_eta = event[i].eta();
-			float tmp_phi = event[i].phi();
+			float pt	= event[i].pT();
+			float eta = event[i].eta();
+			float phi = event[i].phi();
+			float tprod = event[i].tProd();
 
-			if ( fabs(tmp_eta)>6.0 ) continue;
-			if ( fabs(tmp_eta)<1.5 && tmp_pt<const_pt_cut ) continue;
+			if ( fabs(eta)>5.0 ) continue;
+			if ( fabs(eta)<2.5 && pt<0.2 ) continue;
 
-			f_p_pt[i_np] = tmp_pt;
-			f_p_eta[i_np] = tmp_eta;
-			f_p_phi[i_np] = tmp_phi;
+			int index_mom1 = event[i].mother1();
+			int index_mom2 = event[i].mother2();
 
-			/*
-			int status = event[i].status();
-			int id = event[i].id();
+			int id_mom1 = event[index_mom1].id();
+			int id_mom2 = event[index_mom2].id();
 
-			double xprod = event[i].xProd();
-			double yprod = event[i].yProd();
-			double zprod = event[i].zProd();
-			double tprod = event[i].tProd();
-			double rapidity_tau = (tprod-zprod)<1e-10 ? 0 : 0.5*log((tprod+zprod)/(tprod-zprod));
+			i_p_id[i_np] = id;
+			i_p_status[i_np] = status;
 
-			double px = event[i].px();
-			double py = event[i].py();
-			double pz = event[i].pz();
-			double ee = event[i].e();
-			double rapidity = (ee-fabs(pz))<1e-10 ? 0 : 0.5*log((ee+pz)/(ee-pz));
-			*/
+			b_p_final[i_np] = event[i].isFinal();
+
+			f_p_pt[i_np] = pt;
+			f_p_eta[i_np] = eta;
+			f_p_phi[i_np] = phi;
+			f_p_vt[i_np] = tprod;
+
+			i_p_mom1[i_np] = id_mom1;
+			i_p_mom2[i_np] = id_mom2;
+
+			b_p_mom1_had[i_np] = event[index_mom1].isHadron();
+			b_p_mom2_had[i_np] = event[index_mom2].isHadron();
 
 			i_np++;
+
+			if ( i_np>=2000 ) break;
 
 		}
 
