@@ -6,7 +6,7 @@ void DrawHFLepton(){
 	const int nColor[5] = {1, 2, 4, 6, 8};
 
 	const int ppXection = 42.0;
-	const float nEvent = 100*10000000;
+	const float nEventPerFile = 10000000;
 	const float deta = 0.7;
 
 	const float twopi = TMath::TwoPi();
@@ -22,14 +22,18 @@ void DrawHFLepton(){
 
 	TH1D *hHFemu_cc[nset];
 	TH1D *hHFemu_bb[nset];
+	TH1D *hNfiles[nset];
 
 	for (int iset=0; iset<nset; iset++){
 
 		hHFemu_cc[iset] = (TH1D*)infile[iset]->Get("hHFemu_cc");
 		hHFemu_bb[iset] = (TH1D*)infile[iset]->Get("hHFemu_bb");
+		hNfiles[iset] = (TH1D*)infile[iset]->Get("hNfiles");
 
-		hHFemu_cc[iset]->Rebin();
-		hHFemu_bb[iset]->Rebin();
+		hHFemu_cc[iset]->Rebin(4);
+		hHFemu_bb[iset]->Rebin(4);
+
+		float nEvent = hNfiles[iset]->GetBinContent(1)*nEventPerFile;
 
 		for (int ii=0; ii<hHFemu_cc[iset]->GetNbinsX(); ii++){
 
