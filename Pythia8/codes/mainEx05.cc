@@ -20,6 +20,8 @@ using namespace Pythia8;
 
 int main() {
 
+	bool bDEBUG = false;
+
   // Generator.
   Pythia pythia;
 
@@ -89,7 +91,9 @@ int main() {
 			int p1_pid = abs(event[p1_ind].id());
 			int p2_pid = abs(event[p2_ind].id());
 
-			//cout << p1_pid << " " << p2_pid << endl;
+			if ( bDEBUG ){
+				cout << p1_ind << " " << p1_pid << " " << p2_ind << " " << p2_pid << endl;
+			}
 
 			if ( p1_pid==4 || (p1_pid>400 && p1_pid<500) || (p1_pid>4000 && p1_pid<5000) ){
 				pidC = p1_pid;
@@ -108,18 +112,22 @@ int main() {
 				int pp1_ind = event[p1_ind].mother1();
 				int pp2_ind = event[p1_ind].mother2();
 
-				int pp1_pid = event[pp1_ind].id();
-				int pp2_pid = event[pp2_ind].id();
+				int pp1_pid = abs(event[pp1_ind].id());
+				int pp2_pid = abs(event[pp2_ind].id());
+				
+				if ( bDEBUG ){
+					cout << pp1_ind << " " << pp1_pid << " " << pp2_ind << " " << pp2_pid << endl;
+				}
 
-				if ( pp1_pid==4 || (pp1_pid>400 && pp1_pid<500) || (pp1_pid>4000 && pp1_pid<5000) ){
+				if ( pp1_pid==4 || pp2_pid==4 || (pp1_pid>400 && pp1_pid<500) || (pp1_pid>4000 && pp1_pid<5000) ){
 					pidC = pp1_pid;
 					bC = true;
-				}if ( pp1_pid==5 || (pp1_pid>500 && pp1_pid<600) || (pp1_pid>5000 && pp1_pid<6000) ){
+				}if ( pp1_pid==5 || pp2_pid==5 || (pp1_pid>500 && pp1_pid<600) || (pp1_pid>5000 && pp1_pid<6000) ){
 					pidB = pp1_pid;
 					bB = true;
 				}
 
-				if ( p2_ind!=0 || (p1_ind==0 && p2_ind==0) ){
+				if ( pp2_ind!=0 || (pp1_ind==0 && pp2_ind==0) ){
 					bQ = true;
 				}else{
 					p1_ind = pp1_ind;
