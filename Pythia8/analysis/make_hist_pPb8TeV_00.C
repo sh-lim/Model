@@ -77,13 +77,15 @@ void make_hist_pPb8TeV_00(const char *fname="file.lst"){
 	TH2D *heta_pt_ana = new TH2D("heta_pt_ana","",100,-5,5,100,0,10);
 	TH1D *hevent_mult_mid = new TH1D("hevent_mult_mid","",250,0,250);
 
-	TProfile *hprof_meanpt = new TProfile("hprof_meanpt","",10,0,200);
-	TProfile *hprof_ck = new TProfile("hprof_ck","",10,0,200);
-	TProfile *hprof_corr2 = new TProfile("hprof_corr2","",10,0,200);
-	TProfile *hprof_corr4 = new TProfile("hprof_corr4","",10,0,200);
-	TProfile *hprof_ptcorr2 = new TProfile("hprof_ptcorr2","",10,0,200);
+	TProfile *hprof_meanpt = new TProfile("hprof_meanpt","",20,0,200);
+	TProfile *hprof_ck = new TProfile("hprof_ck","",20,0,200);
+	TProfile *hprof_corr2 = new TProfile("hprof_corr2","",20,0,200);
+	TProfile *hprof_corr4 = new TProfile("hprof_corr4","",20,0,200);
+	TProfile *hprof_ptcorr2 = new TProfile("hprof_ptcorr2","",20,0,200);
+	TProfile *hprof_ptcorr2dir = new TProfile("hprof_ptcorr2dir","",20,0,200);
 
-	TFile *infile_ref = new TFile("/alice/home/shlim/work/Pythia/jobs/outfile_hist_pPb8TeV_set00_grp000_try102.root","read");
+	//TFile *infile_ref = new TFile("/alice/home/shlim/work/Pythia/jobs/outfile_hist_pPb8TeV_set00_grp000_try102.root","read");
+	TFile *infile_ref = new TFile("/alice/home/shlim/work/Pythia/jobs/outfile_hist_pPb8TeV_set00_grp001_try101.root","read");
 	TProfile *hprof_ref_meanpt = (TProfile*)infile_ref->Get("hprof_meanpt");
 
 	while ( flist >> ffname ){
@@ -183,6 +185,7 @@ void make_hist_pPb8TeV_00(const char *fname="file.lst"){
 			float Qx2_C = 0.0, Qy2_C = 0.0, Qx4_C = 0.0, Qy4_C = 0.0, Qw_C = 0.0;
 			float Px2_A = 0.0, Py2_A = 0.0, Pw_A = 0.0;
 			float Px2_C = 0.0, Py2_C = 0.0, Pw_C = 0.0;
+			float Px2_AC = 0.0, Py2_AC = 0.0, Pw_AC = 0.0;
 
 			for (int ip=0; ip<i_np; ip++){
 
@@ -231,6 +234,55 @@ void make_hist_pPb8TeV_00(const char *fname="file.lst"){
 				}//jp
 			}//ip
 
+			if ( B_ntrk>0 ){
+
+				for (int ip=0; ip<i_np; ip++){
+
+					if ( f_p_vt[ip]>0.1 ) continue;
+					if ( f_p_pt[ip]<pt_min || f_p_pt[ip]>pt_max ) continue;
+
+					int index_ip = -1;
+					if ( f_p_eta[ip]>-2.5 && f_p_eta[ip]<-0.75 ){
+						index_ip = 0;
+					}else if ( f_p_eta[ip]>0.75 && f_p_eta[ip]<2.5 ){
+						index_ip = 2;
+					}else{
+						index_ip = 1;
+					}
+
+					for (int jp=0; jp<i_np; jp++){
+
+						if ( ip==jp ) continue;
+						if ( f_p_vt[jp]>0.1 ) continue;
+						if ( f_p_pt[jp]<pt_min || f_p_pt[jp]>pt_max ) continue;
+
+						int index_jp = -1;
+						if ( f_p_eta[jp]>-2.5 && f_p_eta[jp]<-0.75 ){
+							index_jp = 0;
+						}else if ( f_p_eta[jp]>0.75 && f_p_eta[jp]<2.5 ){
+							index_jp = 2;
+						}else{
+							index_jp = 1;
+						}
+
+						if ( (index_ip==0 && index_jp==2) || (index_ip==2 && index_jp==0) ){
+							float delta_phi = 2*(f_p_phi[ip] - f_p_phi[jp]);
+							Px2_AC += cos(delta_phi)*(B_sumpt/B_ntrk - B_meanpt);
+							Py2_AC += sin(delta_phi)*(B_sumpt/B_ntrk - B_meanpt);
+							++Pw_AC;
+						}
+
+					}//jp
+				}//ip
+
+				if ( Pw_AC>0 ){
+					//cout << Px2_AC << " " << Pw_AC << " " << Px2_AC/Pw_AC << endl;
+					hprof_ptcorr2dir->Fill(float(nmult_mid), Px2_AC/Pw_AC);
+				}
+
+			}//B_ntrk
+
+
 			if ( B_npair>0 ){
 				hprof_ck->Fill(float(nmult_mid), B_sumck/B_npair);
 			}
@@ -269,6 +321,7 @@ void make_hist_pPb8TeV_00(const char *fname="file.lst"){
 	hprof_corr2->Write();
 	hprof_corr4->Write();
 	hprof_ptcorr2->Write();
+	hprof_ptcorr2dir->Write();
 
 	outfile->Close();
 
