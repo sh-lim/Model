@@ -240,37 +240,19 @@ void make_hist_pPb8TeV_00(const char *fname="file.lst"){
 
 					if ( f_p_vt[ip]>0.1 ) continue;
 					if ( f_p_pt[ip]<pt_min || f_p_pt[ip]>pt_max ) continue;
-
-					int index_ip = -1;
-					if ( f_p_eta[ip]>-2.5 && f_p_eta[ip]<-0.75 ){
-						index_ip = 0;
-					}else if ( f_p_eta[ip]>0.75 && f_p_eta[ip]<2.5 ){
-						index_ip = 2;
-					}else{
-						index_ip = 1;
-					}
+					if ( f_p_eta[ip]<-2.5 || f_p_eta[ip]>-0.75 ) continue; //A-region
 
 					for (int jp=0; jp<i_np; jp++){
 
 						if ( ip==jp ) continue;
 						if ( f_p_vt[jp]>0.1 ) continue;
 						if ( f_p_pt[jp]<pt_min || f_p_pt[jp]>pt_max ) continue;
+						if ( f_p_eta[jp]<0.75 || f_p_eta[jp]>2.5 ) continue; //C-region
 
-						int index_jp = -1;
-						if ( f_p_eta[jp]>-2.5 && f_p_eta[jp]<-0.75 ){
-							index_jp = 0;
-						}else if ( f_p_eta[jp]>0.75 && f_p_eta[jp]<2.5 ){
-							index_jp = 2;
-						}else{
-							index_jp = 1;
-						}
-
-						if ( (index_ip==0 && index_jp==2) || (index_ip==2 && index_jp==0) ){
-							float delta_phi = 2*(f_p_phi[ip] - f_p_phi[jp]);
-							Px2_AC += cos(delta_phi)*(B_sumpt/B_ntrk - B_meanpt);
-							Py2_AC += sin(delta_phi)*(B_sumpt/B_ntrk - B_meanpt);
-							++Pw_AC;
-						}
+						float delta_phi = 2*(f_p_phi[ip] - f_p_phi[jp]);
+						Px2_AC += cos(delta_phi)*(B_sumpt/B_ntrk - B_meanpt);
+						Py2_AC += sin(delta_phi)*(B_sumpt/B_ntrk - B_meanpt);
+						++Pw_AC;
 
 					}//jp
 				}//ip
