@@ -20,11 +20,13 @@ void DrawVnV2(){
 	TProfile *hcosndphiP[nset][norder][npid];
 	TProfile *hcosndphiInitP[nset][norder][2];
 	TProfile *hcosndphiFinalP[nset][norder][2];
+	TProfile *hcosndphiFinalPH[nset][norder][2];
 
 	TGraphErrors *gvn[nset][neta][norder][npid];
 	TGraphErrors *gvnP[nset][norder][npid];
 	TGraphErrors *gvnInitP[nset][norder][npid];
 	TGraphErrors *gvnFinalP[nset][norder][npid];
+	TGraphErrors *gvnFinalPH[nset][norder][npid];
 
 	for (int iset=0; iset<nset; iset++){
 		for (int ieta=0; ieta<neta; ieta++){
@@ -51,6 +53,7 @@ void DrawVnV2(){
 			for (int ipid=0; ipid<2; ipid++){
 				hcosndphiInitP[iset][io][ipid] = (TProfile*)infile[iset]->Get(Form("hcosndphiInitParton_order%d_pid%d",io+2,ipid));
 				hcosndphiFinalP[iset][io][ipid] = (TProfile*)infile[iset]->Get(Form("hcosndphiFinalParton_order%d_pid%d",io+2,ipid));
+				hcosndphiFinalPH[iset][io][ipid] = (TProfile*)infile[iset]->Get(Form("hcosndphiFinalPartonH_order%d_pid%d",io+2,ipid));
 			}
 		}
 	}
@@ -96,7 +99,7 @@ void DrawVnV2(){
 
 					gvn[iset][ieta][io][ipid] = new TGraphErrors;
 					gvn[iset][ieta][io][ipid]->SetLineColor(nColor[ieta]);
-					gvn[iset][ieta][io][ipid]->SetLineWidth(2);
+					gvn[iset][ieta][io][ipid]->SetLineWidth(0);
 					gvn[iset][ieta][io][ipid]->SetFillColorAlpha(nColor[ieta],0.2);
 
 					for (int ib=0; ib<hcosndphi[iset][ieta][io][ipid]->GetNbinsX(); ib++){
@@ -127,7 +130,7 @@ void DrawVnV2(){
 
 				gvnP[iset][io][ipid] = new TGraphErrors;
 				gvnP[iset][io][ipid]->SetLineColor(kGreen+2);
-				gvnP[iset][io][ipid]->SetLineWidth(2);
+				gvnP[iset][io][ipid]->SetLineWidth(0);
 				gvnP[iset][io][ipid]->SetFillColorAlpha(kGreen+2,0.2);
 
 				for (int ib=0; ib<hcosndphiP[iset][io][ipid]->GetNbinsX(); ib++){
@@ -157,13 +160,18 @@ void DrawVnV2(){
 
 				gvnInitP[iset][io][ipid] = new TGraphErrors;
 				gvnInitP[iset][io][ipid]->SetLineColor(nColor[iset]);
-				gvnInitP[iset][io][ipid]->SetLineWidth(2);
+				gvnInitP[iset][io][ipid]->SetLineWidth(0);
 				gvnInitP[iset][io][ipid]->SetFillColorAlpha(nColor[iset],0.2);
 
 				gvnFinalP[iset][io][ipid] = new TGraphErrors;
 				gvnFinalP[iset][io][ipid]->SetLineColor(nColor[iset]);
-				gvnFinalP[iset][io][ipid]->SetLineWidth(2);
+				gvnFinalP[iset][io][ipid]->SetLineWidth(0);
 				gvnFinalP[iset][io][ipid]->SetFillColorAlpha(nColor[iset],0.2);
+
+				gvnFinalPH[iset][io][ipid] = new TGraphErrors;
+				gvnFinalPH[iset][io][ipid]->SetLineColor(nColor[iset]);
+				gvnFinalPH[iset][io][ipid]->SetLineWidth(0);
+				gvnFinalPH[iset][io][ipid]->SetFillColorAlpha(nColor[iset],0.2);
 
 				for (int ib=0; ib<hcosndphiInitP[iset][io][ipid]->GetNbinsX(); ib++){
 					float xx = hcosndphiInitP[iset][io][ipid]->GetBinCenter(ib+1);
@@ -183,6 +191,16 @@ void DrawVnV2(){
 
 					gvnFinalP[iset][io][ipid]->SetPoint(ib, xx, yy);
 					gvnFinalP[iset][io][ipid]->SetPointError(ib, xx_err, 0.001+yy_err);
+				}
+
+				for (int ib=0; ib<hcosndphiFinalPH[iset][io][ipid]->GetNbinsX(); ib++){
+					float xx = hcosndphiFinalPH[iset][io][ipid]->GetBinCenter(ib+1);
+					float xx_err = 0.5*hcosndphiFinalPH[iset][io][ipid]->GetBinWidth(ib+1);
+					float yy = hcosndphiFinalPH[iset][io][ipid]->GetBinContent(ib+1);
+					float yy_err = hcosndphiFinalPH[iset][io][ipid]->GetBinError(ib+1);
+
+					gvnFinalPH[iset][io][ipid]->SetPoint(ib, xx, yy);
+					gvnFinalPH[iset][io][ipid]->SetPointError(ib, xx_err, 0.001+yy_err);
 				}
 
 			}//ipid
@@ -285,7 +303,7 @@ void DrawVnV2(){
 		TLegend *leg = new TLegend(0.5,0.55,0.9,0.9);
 		leg->SetFillStyle(0);
 		leg->SetBorderSize(0);
-		leg->SetTextSize(0.04);
+		leg->SetTextSize(0.035);
 		leg->AddEntry("","AMPT pPb 5.02 TeV","h");
 		leg->AddEntry("","0-10% (-5<#eta<-3)","h");
 		leg->AddEntry("","Final parton (u, d), |#eta|<1","h");
@@ -306,44 +324,99 @@ void DrawVnV2(){
 		c3->cd(iset+1);
 		gPad->SetMargin(0.14,0.05,0.12,0.05);
 
-		TH1D *htmp = (TH1D*)gPad->DrawFrame(0,-0.05,10,0.8);
+		TH1D *htmp = (TH1D*)gPad->DrawFrame(0,-0.05,10,0.35);
 		htmp->GetXaxis()->SetTitle("p_{T} (GeV/c)");
 		htmp->GetXaxis()->SetTitleSize(0.05);
 		htmp->GetXaxis()->SetLabelSize(0.04);
 
 		htmp->GetYaxis()->SetTitle("v_{n}");
+		htmp->GetYaxis()->SetTitleOffset(1.15);
 		htmp->GetYaxis()->SetTitleSize(0.05);
 		htmp->GetYaxis()->SetLabelSize(0.04);
 
-		gvn[iset][2][0][1]->SetFillColorAlpha(1,0.2);
-		gvn[iset][2][0][3]->SetFillColorAlpha(2,0.2);
-		gvn[iset][2][0][1]->Draw("e3");
-		gvn[iset][2][0][3]->Draw("e3");
+		gvn[iset][1][0][1]->SetFillColorAlpha(1,0.3);
+		gvn[iset][1][0][3]->SetFillColorAlpha(2,0.3);
+		gvn[iset][1][0][1]->Draw("e3");
+		gvn[iset][1][0][3]->Draw("e3");
 
-		gvnP[iset][0][1]->SetFillColorAlpha(1,0.2);
-		gvnP[iset][0][3]->SetFillColorAlpha(2,0.2);
+		gvnP[iset][0][1]->SetFillColorAlpha(1,0.3);
+		gvnP[iset][0][3]->SetFillColorAlpha(2,0.3);
 		gvnP[iset][0][1]->SetFillStyle(3001);
 		gvnP[iset][0][3]->SetFillStyle(3001);
 		gvnP[iset][0][1]->Draw("e3");
 		gvnP[iset][0][3]->Draw("e3");
 
-		TLegend *leg = new TLegend(0.6,0.5,0.9,0.85);
+		TLegend *leg = new TLegend(0.2,0.55,0.5,0.9);
 		leg->SetFillStyle(0);
 		leg->SetBorderSize(0);
-		leg->SetTextSize(0.04);
+		leg->SetTextSize(0.035);
 		leg->AddEntry("","AMPT pPb 5.02 TeV","h");
+		leg->AddEntry("","0-10% (-5<#eta<-3)","h");
 		if ( iset==0 ){
-			leg->AddEntry("","Parton scattering on","h");
-		}else{
-			leg->AddEntry("","Parton scattering off","h");
+			leg->AddEntry("","Parton on, hadron on","h");
+		}else if ( iset==1 ){
+			leg->AddEntry("","Parton off, hadron on","h");
+		}else if ( iset==2 ){
+			leg->AddEntry("","Parton on, hadron off","h");
+		}else if ( iset==3 ){
+			leg->AddEntry("","Parton off, hadron off","h");
 		}
 		leg->AddEntry("","Charged hadron, |#eta|<1","h");
-		leg->AddEntry(gvn[iset][0][0][0],"EP, -1<#eta<1","F");
-		leg->AddEntry(gvn[iset][1][0][0],"EP, -3<#eta<-1","F");
+		leg->AddEntry(gvn[iset][1][0][1],"#pi (EP, -3<#eta<-1)","F");
+		leg->AddEntry(gvn[iset][1][0][3],"p (EP, -3<#eta<-1)","F");
+		leg->AddEntry(gvnP[iset][0][1],"#pi (PP)","F");
+		leg->AddEntry(gvnP[iset][0][3],"p (PP)","F");
 		leg->Draw();
 	}
 
-	/*
-	*/
+
+	TCanvas *c4 = new TCanvas("c4","c4",1.1*2*500,2*500);
+	c4->Divide(2,2);
+
+	for (int iset=0; iset<nset; iset++){
+
+		c4->cd(iset+1);
+		gPad->SetMargin(0.14,0.05,0.12,0.05);
+
+		TH1D *htmp = (TH1D*)gPad->DrawFrame(0,-0.01,10,0.15);
+		htmp->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+		htmp->GetXaxis()->SetTitleSize(0.05);
+		htmp->GetXaxis()->SetLabelSize(0.04);
+
+		htmp->GetYaxis()->SetTitle("v_{n}");
+		htmp->GetYaxis()->SetTitleOffset(1.15);
+		htmp->GetYaxis()->SetTitleSize(0.05);
+		htmp->GetYaxis()->SetLabelSize(0.04);
+
+		gvnFinalPH[iset][0][0]->SetFillColorAlpha(1,0.3);
+		gvnFinalPH[iset][0][1]->SetFillColorAlpha(2,0.3);
+		gvnFinalPH[iset][0][0]->SetFillStyle(3001);
+		gvnFinalPH[iset][0][1]->SetFillStyle(3001);
+		gvnFinalPH[iset][0][0]->Draw("e3");
+		gvnFinalPH[iset][0][1]->Draw("e3");
+
+		TLegend *leg = new TLegend(0.2,0.55,0.5,0.9);
+		leg->SetFillStyle(0);
+		leg->SetBorderSize(0);
+		leg->SetTextSize(0.035);
+		leg->AddEntry("","AMPT pPb 5.02 TeV","h");
+		leg->AddEntry("","0-10% (-5<#eta<-3)","h");
+		leg->AddEntry("","Participant plane","h");
+		if ( iset==0 ){
+			leg->AddEntry("","Parton on, hadron on","h");
+		}else if ( iset==1 ){
+			leg->AddEntry("","Parton off, hadron on","h");
+		}else if ( iset==2 ){
+			leg->AddEntry("","Parton on, hadron off","h");
+		}else if ( iset==3 ){
+			leg->AddEntry("","Parton off, hadron off","h");
+		}
+		leg->AddEntry("","Final parton (u, d), |#eta|<1","h");
+		leg->AddEntry(gvnFinalPH[iset][0][0],"u, d for #pi","F");
+		leg->AddEntry(gvnFinalPH[iset][0][1],"u, d for p","F");
+		leg->AddEntry("","","");
+		leg->AddEntry("","","");
+		leg->Draw();
+	}
 
 }
