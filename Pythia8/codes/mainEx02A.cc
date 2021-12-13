@@ -23,7 +23,7 @@ using namespace Pythia8;
 int main(int argc, char *argv[]) {
 
 	if ( argc<2 ){
-		cout << "Usage: ./mainEx02 cut_jetpt" << endl;
+		cout << "Usage: ./mainEx02A cut_jetpt" << endl;
 		return -1;
 	}
 
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
   Event& event = pythia.event;
 
   // Read in commands from external file.
-  pythia.readFile("mainEx02.cfg");
+  pythia.readFile("mainEx02A.cfg");
 
   // Extract settings to be used in the main program.
   int nEvent = pythia.mode("Main:numberOfEvents");
@@ -195,8 +195,8 @@ int main(int argc, char *argv[]) {
 		*/
 
 		//multiplicity calculation 
-		/*
 		int i_mult_fwd = 0;
+		int i_mult_mid = 0;
 		for (int i = 0; i < event.size(); ++i) {
 
 			if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
@@ -205,8 +205,13 @@ int main(int argc, char *argv[]) {
 			if ( (tmp_eta>2.8 && tmp_eta<5.1) || (tmp_eta>-3.7 && tmp_eta<-1.7) ){
 				i_mult_fwd++;
 			}//
+
+			if ( fabs(tmp_eta)<1.0 ){
+				i_mult_mid++;
+			}
 		}
-		*/
+
+		if ( i_mult_mid<30 ) continue;
 
 		fjInputs.resize(0);
 		fjInputsChg.resize(0);
@@ -272,8 +277,10 @@ int main(int argc, char *argv[]) {
 
 		//continue;
 		//if ( (sortedJetsR03.size()+sortedJetsR04.size()+sortedJetsR05.size()+sortedJetsR06.size()+sortedJetsR07.size())<1 ) continue;
-		if ( njet<1 ) continue;
+		//if ( njet<1 ) continue;
+		if ( njet>0 ) continue;
 
+		/*
 		i_njetR03 = 0;
 		i_njetR04 = 0;
 		i_njetR05 = 0;
@@ -339,6 +346,7 @@ int main(int argc, char *argv[]) {
 
 			i_nchgjetR05++;
 		}
+		*/
 
 
 		i_np = 0;
