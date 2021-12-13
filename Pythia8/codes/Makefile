@@ -189,7 +189,7 @@ else
 	@echo "Skipping Root dictionary"
 endif
 
-mainEx00 mainEx01: $$@.cc $(PREFIX_LIB)/libpythia8.a
+mainEx00 mainEx01 mainEx02 mainEx02A mainEx03 mainEx05 mainEx06 mainEx07 AnaEx02 AnaEx02A: $$@.cc $(PREFIX_LIB)/libpythia8.a
 ifeq ($(FASTJET3_USE)$(ROOT_USE),truetrue)
 	$(CXX) $< -o $@ -I$(FASTJET3_INCLUDE) $(shell root-config --cflags) $(CXX_COMMON)\
 	 -L$(FASTJET3_LIB) -Wl,-rpath,$(FASTJET3_LIB) -lfastjet\
@@ -197,6 +197,15 @@ ifeq ($(FASTJET3_USE)$(ROOT_USE),truetrue)
 	  $(GZIP_INC) $(GZIP_FLAGS)
 else
 	@echo "Error: $@ requires FASTJET3"
+endif
+
+mainEx04: $$@.cc $(PREFIX_LIB)/libpythia8.a
+ifeq ($(ROOT_USE),true)
+	$(CXX) $< -o $@ $(shell root-config --cflags) $(CXX_COMMON)\
+	 $(shell root-config --libs)\
+	 $(GZIP_INC) $(GZIP_FLAGS)
+else
+	@echo "Error: $@ requires ROOT"
 endif
 
 # User-written examples for tutorials, without external dependencies.
