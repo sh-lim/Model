@@ -36,7 +36,8 @@ void SubJetPt(){
 	TH1F *leadjet = new TH1F("leadjet", "leadjet", 100, 0, 200);
 	//subjetpt->Sumw2(); jetpt->Sumw2(); jetptsub->Sumw2();
 
-	TH1F *hdiffpt = new TH1F("hdiffpt","",100,-10,10);
+	TH1F *hdpt_inc = new TH1F("hdpt_inc","",100,-10,10);
+	TH1F *hdpt_sub = new TH1F("hdpt_sub","",100,-10,10);
 	TH2D *hsigpt_subpt = new TH2D("hsigpt_subpt","",100,0,200,100,0,200);
 	TH2D *hsigpt_incpt = new TH2D("hsigpt_incpt","",100,0,200,100,0,200);
 
@@ -72,10 +73,11 @@ void SubJetPt(){
 	{
 		T->GetEntry(ien);
 
+		//event selection 1
 		if ( I_i_njet!=i_njet ) continue;
 
 		njet->Fill(i_njet);
-		//event selection
+		//event selection 2
 		int max = 0;
 		if (I_f_jet_pt[max]<10) continue;
 		leadjet->Fill(I_f_jet_pt[max]);
@@ -171,7 +173,8 @@ void SubJetPt(){
 
 		hsigpt_incpt->Fill(f_jet_pt[0], I_f_jet_pt[0]);
 		hsigpt_subpt->Fill(f_jet_pt[0], I_f_jet_pt[0]-totpt*area);
-		hdiffpt->Fill((I_f_jet_pt[0]-totpt*area) - f_jet_pt[0]);
+		hdpt_inc->Fill(I_f_jet_pt[0] - f_jet_pt[0]);
+		hdpt_sub->Fill((I_f_jet_pt[0]-totpt*area) - f_jet_pt[0]);
 
 	}//ien
 
@@ -191,7 +194,8 @@ void SubJetPt(){
 
 	hsigpt_incpt->Write();
 	hsigpt_subpt->Write();
-	hdiffpt->Write();
+	hdpt_inc->Write();
+	hdpt_sub->Write();
 
 	// subjt->Write();
 	// subz->Write();
