@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
 
 		//continue;
 		//if ( (sortedJetsR03.size()+sortedJetsR04.size()+sortedJetsR05.size()+sortedJetsR06.size()+sortedJetsR07.size())<1 ) continue;
-		if ( njet<1 ) continue;
+		//if ( njet<1 ) continue;
 
 		i_njetR03 = 0;
 		i_njetR04 = 0;
