@@ -88,24 +88,70 @@ void JtCalculate01(){
 		{
 			T->GetEntry(ien);
 
+			//Multiplicity calculation
+			int mult = 0;
+
+			//charged particle
+			for (int ip=0; ip<i_np; ip++){
+				if ( !b_p_chg[ip] ) continue;
+				if ( fabs(f_p_eta[ip])>1 ) continue;
+
+				mult++;
+			}
+			if ( mult<60 || mult>=80 ) continue;
+
 			//event selection
 			njet->Fill(i_njet);
+			if ( i_njet==0 ) continue;
+
+			//leading jet and rorate
+			TVector3 vec_leadjet;
+			vec_leadjet.SetPtEtaPhi(f_jet_pt[0], f_jet_eta[0], f_jet_phi[0]);
+			TVector3 vOrtho(vec_leadjet);
+			TVector3 perpjet;
+			vOrtho.RotateZ(const_pi/2.);
+
+			float bkg_pt = 0.0;
+			float bkg_ptot = 0.0;
+
+			for (int itr = 0; itr < i_np; itr++)
+			{
+				if (fabs(f_p_eta[itr])>1) continue;
+				if ( abs(i_p_id[itr])==12 || abs(i_p_id[itr])==14 || abs(i_p_id[itr])==16 ) continue;
+				float deta = f_p_eta[itr] - vOrtho.Eta();
+				float dphi = f_p_phi[itr] - vOrtho.Phi();
+
+				if ( dphi < -const_pi ) dphi += 2*const_pi;
+				else if ( dphi > const_pi ) dphi -= 2*const_pi;
+
+				float newdR = sqrt(deta*deta + dphi*dphi);
+				if(newdR>0.4) continue; 
+
+				TVector3 vec;
+				vec.SetPtEtaPhi(f_p_pt[itr], f_p_eta[itr], f_p_phi[itr]);
+
+				bkg_pt += f_p_pt[itr];
+				bkg_ptot += vec.Mag(); 
+			}//itr  track loop
 
 			//signal jets
-			TVector3 vec_jet;
 			for (int kjet = 0; kjet < i_njet; kjet++)
 			{
 				if (fabs(f_jet_eta[kjet])>0.5) continue;
-				if (f_jet_pt[kjet]<25 || f_jet_pt[kjet]>80) continue;
+				//bakcground subtraction
+				TVector3 vec_jet;
+				vec_jet.SetPtEtaPhi(f_jet_pt[kjet], f_jet_eta[kjet], f_jet_phi[kjet]);
+				vec_jet.SetMag(vec_jet.Mag() - bkg_ptot);
+
+				if (vec_jet.Pt()<25 || vec_jet.Pt()>80) continue;
 
 				int ptbin = 0;
-				if ( f_jet_pt[kjet]>60 ) ptbin = 2; 
-				else if ( f_jet_pt[kjet]>40 ) ptbin = 1; 
+				if ( vec_jet.Pt()>60 ) ptbin = 2; 
+				else if ( vec_jet.Pt()>40 ) ptbin = 1; 
 
-				jetpt->Fill(f_jet_pt[kjet]);
-				jeteta[ptbin]->Fill(f_jet_eta[kjet]);
+				jetpt->Fill(vec_jet.Pt());
+				jeteta[ptbin]->Fill(vec_jet.Eta());
 
-				vec_jet.SetPtEtaPhi(f_jet_pt[kjet], f_jet_eta[kjet], f_jet_phi[kjet]);
 				TVector3 vPerp(vec_jet);
 				vPerp.RotateZ(const_pi/2.);
 
