@@ -40,15 +40,19 @@ int main() {
 	int i_np;
 
 	int i_p_id[2000];
-	//int i_p_status[2000];
+	int i_p_status[2000];
 	float f_p_pt[2000];
 	float f_p_eta[2000];
 	float f_p_phi[2000];
 	//bool b_p_final[2000]; 
 	int i_p_mom1_id[2000];
 	int i_p_mom2_id[2000];
+	int i_p_mom1_status[2000];
+	int i_p_mom2_status[2000];
 	//bool b_p_mom1_had[2000]; 
 	//bool b_p_mom2_had[2000]; 
+	float f_p_mom1_vt[2000];
+	float f_p_mom2_vt[2000];
 
 	float f_p_vt[2000];
 
@@ -66,7 +70,7 @@ int main() {
 
 	T->Branch("np",&i_np,"np/I");
 	T->Branch("p_id",i_p_id,"p_id[np]/I");
-	//T->Branch("p_status",i_p_status,"p_status[np]/I");
+	T->Branch("p_status",i_p_status,"p_status[np]/I");
 	//T->Branch("p_final",b_p_final,"p_final[np]/O");
 	T->Branch("p_pt",f_p_pt,"p_pt[np]/F");
 	T->Branch("p_eta",f_p_eta,"p_eta[np]/F");
@@ -75,6 +79,10 @@ int main() {
 
 	T->Branch("p_mom1_id",i_p_mom1_id,"p_mom1_id[np]/I");
 	T->Branch("p_mom2_id",i_p_mom2_id,"p_mom2_id[np]/I");
+	T->Branch("p_mom1_status",i_p_mom1_status,"p_mom1_status[np]/I");
+	T->Branch("p_mom2_status",i_p_mom2_status,"p_mom2_status[np]/I");
+	T->Branch("p_mom1_vt",f_p_mom1_vt,"p_mom1_vt[np]/F");
+	T->Branch("p_mom2_vt",f_p_mom2_vt,"p_mom2_vt[np]/F");
 	//T->Branch("p_mom1_had",b_p_mom1_had,"p_mom1_had[np]/O");
 	//T->Branch("p_mom2_had",b_p_mom2_had,"p_mom2_had[np]/O");
 
@@ -102,7 +110,7 @@ int main() {
 			//if ( !(event[i].isHadron()) || !(event[i].isCharged()) ) continue;
 			if ( !(event[i].isHadron() && event[i].isFinal()) ) continue;
 
-			//int status 	= event[i].status();
+			int status 	= event[i].status();
 			int id 			= event[i].id();
 
 			float pt	= event[i].pT();
@@ -112,14 +120,8 @@ int main() {
 
 			if ( fabs(eta)>5.0 ) continue;
 
-			int index_mom1 = event[i].mother1();
-			int index_mom2 = event[i].mother2();
-
-			int id_mom1 = event[index_mom1].id();
-			int id_mom2 = event[index_mom2].id();
-
 			i_p_id[i_np] = id;
-			//i_p_status[i_np] = status;
+			i_p_status[i_np] = status;
 
 			//b_p_final[i_np] = event[i].isFinal();
 
@@ -128,8 +130,17 @@ int main() {
 			f_p_phi[i_np] = phi;
 			f_p_vt[i_np] = tprod;
 
-			i_p_mom1_id[i_np] = id_mom1;
-			i_p_mom2_id[i_np] = id_mom2;
+			int index_mom1 = event[i].mother1();
+			int index_mom2 = event[i].mother2();
+
+			i_p_mom1_id[i_np] = event[index_mom1].id();
+			i_p_mom2_id[i_np] = event[index_mom2].id();
+
+			i_p_mom1_status[i_np] = event[index_mom1].status();
+			i_p_mom2_status[i_np] = event[index_mom2].status();
+
+			f_p_mom1_vt[i_np] = event[index_mom1].tProd();
+			f_p_mom2_vt[i_np] = event[index_mom2].tProd();
 
 			//b_p_mom1_had[i_np] = event[index_mom1].isHadron();
 			//b_p_mom2_had[i_np] = event[index_mom2].isHadron();
@@ -148,12 +159,14 @@ int main() {
 
 		}
 
+		//cout << "DONE" << endl;
+
 		//if ( nmult_mid>=120 ){
 		if ( 1 ){
 			T->Fill();
 		}
 
-  }
+  }//iEvent
 
   // Final statistics. Normalize and output histograms.
   pythia.stat();
