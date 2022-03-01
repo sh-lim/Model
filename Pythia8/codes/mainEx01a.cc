@@ -38,23 +38,36 @@ int main() {
 	float f_bMPI;
 	int i_nMPI;
 	int i_np;
+	int i_nmult_v0a;
+	int i_nmult_v0c;
 
-	int i_p_id[2000];
-	int i_p_status[2000];
-	float f_p_pt[2000];
-	float f_p_eta[2000];
-	float f_p_phi[2000];
-	//bool b_p_final[2000]; 
-	int i_p_mom1_id[2000];
-	int i_p_mom2_id[2000];
-	int i_p_mom1_status[2000];
-	int i_p_mom2_status[2000];
-	//bool b_p_mom1_had[2000]; 
-	//bool b_p_mom2_had[2000]; 
-	float f_p_mom1_vt[2000];
-	float f_p_mom2_vt[2000];
+	int i_p_id[10000];
+	int i_p_status[10000];
+	float f_p_pt[10000];
+	float f_p_eta[10000];
+	float f_p_phi[10000];
+	float f_p_vx[10000];
+	float f_p_vy[10000];
+	float f_p_vz[10000];
+	float f_p_vt[10000];
 
-	float f_p_vt[2000];
+	//bool b_p_final[10000]; 
+	int i_p_mom1_id[10000];
+	int i_p_mom2_id[10000];
+	int i_p_mom1_status[10000];
+	int i_p_mom2_status[10000];
+	int i_p_mom1_index[10000];
+	int i_p_mom2_index[10000];
+	float f_p_mom1_vx[10000];
+	float f_p_mom1_vy[10000];
+	float f_p_mom1_vz[10000];
+	float f_p_mom1_vt[10000];
+	float f_p_mom2_vx[10000];
+	float f_p_mom2_vy[10000];
+	float f_p_mom2_vz[10000];
+	float f_p_mom2_vt[10000];
+	float f_p_mom1_mass[10000];
+	float f_p_mom2_mass[10000];
 
 	/*
 	float f_jet_pt[100];
@@ -64,9 +77,11 @@ int main() {
 
 	// Tree output
 	auto T = new TTree("T","Pythia event");
-	T->Branch("scale",&f_scale,"scale/F");
-	T->Branch("bMPI",&f_bMPI,"bMPI/F");
-	T->Branch("nMPI",&i_nMPI,"nMPI/I");
+	//T->Branch("scale",&f_scale,"scale/F");
+	//T->Branch("bMPI",&f_bMPI,"bMPI/F");
+	//T->Branch("nMPI",&i_nMPI,"nMPI/I");
+	T->Branch("nmult_v0a",&i_nmult_v0a,"nmult_v0a/I");
+	T->Branch("nmult_v0c",&i_nmult_v0c,"nmult_v0c/I");
 
 	T->Branch("np",&i_np,"np/I");
 	T->Branch("p_id",i_p_id,"p_id[np]/I");
@@ -75,13 +90,26 @@ int main() {
 	T->Branch("p_pt",f_p_pt,"p_pt[np]/F");
 	T->Branch("p_eta",f_p_eta,"p_eta[np]/F");
 	T->Branch("p_phi",f_p_phi,"p_phi[np]/F");
+	T->Branch("p_vx",f_p_vx,"p_vx[np]/F");
+	T->Branch("p_vy",f_p_vy,"p_vy[np]/F");
+	T->Branch("p_vz",f_p_vz,"p_vz[np]/F");
 	T->Branch("p_vt",f_p_vt,"p_vt[np]/F");
 
 	T->Branch("p_mom1_id",i_p_mom1_id,"p_mom1_id[np]/I");
 	T->Branch("p_mom2_id",i_p_mom2_id,"p_mom2_id[np]/I");
+	T->Branch("p_mom1_index",i_p_mom1_index,"p_mom1_index[np]/I");
+	T->Branch("p_mom2_index",i_p_mom2_index,"p_mom2_index[np]/I");
 	T->Branch("p_mom1_status",i_p_mom1_status,"p_mom1_status[np]/I");
 	T->Branch("p_mom2_status",i_p_mom2_status,"p_mom2_status[np]/I");
+	T->Branch("p_mom1_mass",f_p_mom1_mass,"p_mom1_mass[np]/F");
+	T->Branch("p_mom2_mass",f_p_mom2_mass,"p_mom2_mass[np]/F");
+	T->Branch("p_mom1_vx",f_p_mom1_vx,"p_mom1_vx[np]/F");
+	T->Branch("p_mom1_vy",f_p_mom1_vy,"p_mom1_vy[np]/F");
+	T->Branch("p_mom1_vz",f_p_mom1_vz,"p_mom1_vz[np]/F");
 	T->Branch("p_mom1_vt",f_p_mom1_vt,"p_mom1_vt[np]/F");
+	T->Branch("p_mom2_vx",f_p_mom2_vx,"p_mom2_vx[np]/F");
+	T->Branch("p_mom2_vy",f_p_mom2_vy,"p_mom2_vy[np]/F");
+	T->Branch("p_mom2_vz",f_p_mom2_vz,"p_mom2_vz[np]/F");
 	T->Branch("p_mom2_vt",f_p_mom2_vt,"p_mom2_vt[np]/F");
 	//T->Branch("p_mom1_had",b_p_mom1_had,"p_mom1_had[np]/O");
 	//T->Branch("p_mom2_had",b_p_mom2_had,"p_mom2_had[np]/O");
@@ -101,24 +129,37 @@ int main() {
 		f_bMPI = pythia.info.bMPI();
 		i_nMPI = pythia.info.nMPI();
 
-		//int nmult_mid = 0;
+		i_nmult_v0a = 0;
+		i_nmult_v0c = 0;
+    for (int i = 0; i < event.size(); ++i) {
+
+			if ( !(event[i].isHadron() && event[i].isFinal()) ) continue;
+
+			int id = event[i].id();
+			if ( !(abs(id)==211 || abs(id)==321 || abs(id)==2212) ) continue;
+
+			float eta = event[i].eta();
+			if ( eta>-5.1 && eta<-2.8 ){
+				i_nmult_v0a++;
+			}else if ( eta>1.7 && eta<3.7 ){
+				i_nmult_v0c++;
+			}
+		}
 
 		i_np = 0;
     for (int i = 0; i < event.size(); ++i) {
 
-			//if ( !(event[i].isFinal()) || !(event[i].isCharged()) ) continue;
-			//if ( !(event[i].isHadron()) || !(event[i].isCharged()) ) continue;
 			if ( !(event[i].isHadron() && event[i].isFinal()) ) continue;
+
+			float eta = event[i].eta();
+			if ( fabs(eta)>1.5 ) continue;
 
 			int status 	= event[i].status();
 			int id 			= event[i].id();
+			if ( !(abs(id)==211 || abs(id)==321 || abs(id)==2212) ) continue;
 
 			float pt	= event[i].pT();
-			float eta = event[i].eta();
 			float phi = event[i].phi();
-			float tprod = event[i].tProd();
-
-			if ( fabs(eta)>5.0 ) continue;
 
 			i_p_id[i_np] = id;
 			i_p_status[i_np] = status;
@@ -128,7 +169,10 @@ int main() {
 			f_p_pt[i_np] = pt;
 			f_p_eta[i_np] = eta;
 			f_p_phi[i_np] = phi;
-			f_p_vt[i_np] = tprod;
+			f_p_vx[i_np] = event[i].xProd();
+			f_p_vy[i_np] = event[i].yProd();
+			f_p_vz[i_np] = event[i].zProd();
+			f_p_vt[i_np] = event[i].tProd();
 
 			int index_mom1 = event[i].mother1();
 			int index_mom2 = event[i].mother2();
@@ -136,27 +180,30 @@ int main() {
 			i_p_mom1_id[i_np] = event[index_mom1].id();
 			i_p_mom2_id[i_np] = event[index_mom2].id();
 
+			i_p_mom1_index[i_np] = index_mom1;
+			i_p_mom2_index[i_np] = index_mom2;
+
 			i_p_mom1_status[i_np] = event[index_mom1].status();
 			i_p_mom2_status[i_np] = event[index_mom2].status();
 
+			f_p_mom1_vx[i_np] = event[index_mom1].xProd();
+			f_p_mom1_vy[i_np] = event[index_mom1].yProd();
+			f_p_mom1_vz[i_np] = event[index_mom1].zProd();
 			f_p_mom1_vt[i_np] = event[index_mom1].tProd();
+			f_p_mom2_vx[i_np] = event[index_mom2].xProd();
+			f_p_mom2_vy[i_np] = event[index_mom2].yProd();
+			f_p_mom2_vz[i_np] = event[index_mom2].zProd();
 			f_p_mom2_vt[i_np] = event[index_mom2].tProd();
+
+			f_p_mom1_mass[i_np] = event[index_mom1].m();
+			f_p_mom2_mass[i_np] = event[index_mom2].m();
 
 			//b_p_mom1_had[i_np] = event[index_mom1].isHadron();
 			//b_p_mom2_had[i_np] = event[index_mom2].isHadron();
 
-			/*
-			if ( f_p_vt[i_np]<0.1 ){
-				if ( fabs(f_p_eta[i_np])<2.4 && f_p_pt[i_np]>0.4 && b_p_final[i_np] ){
-					nmult_mid++;
-				}
-			}
-			*/
-
 			i_np++;
 
-			if ( i_np>=2000 ) break;
-
+			if ( i_np>=10000 ) break;
 		}
 
 		//cout << "DONE" << endl;
