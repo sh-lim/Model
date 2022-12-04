@@ -50,14 +50,9 @@ int main() {
 	float f_p_phi[100];
 	float f_p_mass[100];
 
-	int i_p1_id[100];
-	int i_p1_index[100];
-	int i_p2_id[100];
-	int i_p2_index[100];
-	int i_p3_id[100];
-	int i_p3_index[100];
-	int i_p4_id[100];
-	int i_p4_index[100];
+	int i_p1_id[100][30];
+	int i_p1_index[100][30];
+	int i_p1_status[100][30];
 
 	// Tree output
 	auto T = new TTree("T","Pythia event");
@@ -73,14 +68,18 @@ int main() {
 	T->Branch("p_phi",f_p_phi,"p_phi[np]/F");
 	T->Branch("p_mass",f_p_mass,"p_mass[np]/F");
 
-	T->Branch("p1_id",i_p1_id,"p1_id[np]/I");
-	T->Branch("p1_index",i_p1_index,"p1_index[np]/I");
+	T->Branch("p1_id",i_p1_id,"p1_id[np][30]/I");
+	T->Branch("p1_index",i_p1_index,"p1_index[np][30]/I");
+	T->Branch("p1_status",i_p1_status,"p1_status[np][30]/I");
+
+	/*
 	T->Branch("p2_id",i_p2_id,"p2_id[np]/I");
 	T->Branch("p2_index",i_p2_index,"p2_index[np]/I");
 	T->Branch("p3_id",i_p3_id,"p3_id[np]/I");
 	T->Branch("p3_index",i_p3_index,"p3_index[np]/I");
 	T->Branch("p4_id",i_p4_id,"p4_id[np]/I");
 	T->Branch("p4_index",i_p4_index,"p4_index[np]/I");
+	*/
 
 	TH1D *hmult_v0m = new TH1D("hmult_v0m","",500,0,500);
 
@@ -135,37 +134,57 @@ int main() {
 				continue;
 			}
 
-			int p1_index = event[i].mother1();
-			int p1_id = event[p1_index].id();
-
-			int p2_index = event[p1_index].mother1();
-			int p2_id = event[p2_index].id();
-
-			int p3_index = event[p2_index].mother1();
-			int p3_id = event[p3_index].id();
-
-			int p4_index = event[p3_index].mother1();
-			int p4_id = event[p4_index].id();
-
-			//cout << p1_index << " " << p2_index << " " << p3_index << " " << p4_index << " " << event.size() << endl;
-
 			i_p_id[i_np] = event[i].id();
 			f_p_pt[i_np] = event[i].pT();
 			f_p_eta[i_np] = event[i].eta();
 			f_p_phi[i_np] = event[i].phi();
 			f_p_mass[i_np] = event[i].m();
 
-			i_p1_id[i_np] = p1_id;
-			i_p1_index[i_np] = p1_index;
+			int p_ind_prev = event[i].mother1();
 
-			i_p2_id[i_np] = p2_id;
-			i_p2_index[i_np] = p2_index;
+			for (int ii=0; ii<30; ii++){
+				i_p1_id[i_np][ii] = p_ind_prev;
+				i_p1_index[i_np][ii] = event[p_ind_prev].id();
+				i_p1_status[i_np][ii] = event[p_ind_prev].status();
 
-			i_p3_id[i_np] = p3_id;
-			i_p3_index[i_np] = p3_index;
+				p_ind_prev = event[p_ind_prev].mother1();
 
-			i_p4_id[i_np] = p4_id;
-			i_p4_index[i_np] = p4_index;
+				if ( p_ind_prev==0 ) break;
+			}
+
+			/*
+			int p1_index = event[i].mother1();
+			int p1_id = event[p1_index].id();
+			int p1_status = event[p1_index].status();
+
+			int p2_index = event[p1_index].mother1();
+			int p2_id = event[p2_index].id();
+			int p2_status = event[p2_index].status();
+
+			int p3_index = event[p2_index].mother1();
+			int p3_id = event[p3_index].id();
+			int p3_status = event[p3_index].status();
+
+			int p4_index = event[p3_index].mother1();
+			int p4_id = event[p4_index].id();
+			int p4_status = event[p4_index].status();
+
+			i_p1_id[i_np][0] = p1_id;
+			i_p1_index[i_np][0] = p1_index;
+			i_p1_status[i_np][0] = p1_status;
+
+			i_p1_id[i_np][1] = p2_id;
+			i_p1_index[i_np][1] = p2_index;
+			i_p1_status[i_np][1] = p2_status;
+
+			i_p1_id[i_np][2] = p3_id;
+			i_p1_index[i_np][2] = p3_index;
+			i_p1_status[i_np][2] = p3_status;
+
+			i_p1_id[i_np][3] = p4_id;
+			i_p1_index[i_np][3] = p4_index;
+			i_p1_status[i_np][3] = p4_status;
+			*/
 
 			i_np++;
 
@@ -175,13 +194,13 @@ int main() {
 			T->Fill();
 		}
 
-		for (int ii=0; ii<10; ii++){
+		for (int ii=0; ii<100; ii++){
 			i_p_id[ii] = 0;
-			i_p1_id[ii] = i_p1_index[ii] = 0;
-			i_p2_id[ii] = i_p2_index[ii] = 0;
-			i_p3_id[ii] = i_p3_index[ii] = 0;
-			i_p4_id[ii] = i_p4_index[ii] = 0;
 			f_p_pt[ii] = f_p_eta[ii] = f_p_phi[ii] = f_p_mass[ii] = -999;
+
+			for (int jj=0; jj<30; jj++){
+				i_p1_id[ii][jj] = i_p1_index[ii][jj] = i_p1_status[ii][jj] = 0;
+			}
 		}
 
   }//iEvent
