@@ -19,10 +19,10 @@ void ScanEPOS02(){
 	TFile *outfile = new TFile("outfile_epos4.root","recreate");
 
 	int _np = 0;
-	int _pid[1000];
-	float _pt[1000];
-	float _eta[1000];
-	float _phi[1000];
+	int _pid[5000];
+	float _pt[5000];
+	float _eta[5000];
+	float _phi[5000];
 
 	TTree *T = new TTree("T","T");
 	T->Branch("np",&_np,"np/I");
@@ -70,7 +70,21 @@ void ScanEPOS02(){
 	Int_t fNfull;   //number of full events
 	Int_t fNfreeze; //number of freeze outs per full event
 
-	TFile *infile = new TFile("z-expl5.root","read");
+	ifstream flist;
+	flist.open("file.lst");
+
+	string fname;
+	flist >> fname;
+
+	flist.close();
+
+	TFile *infile = new TFile(fname.c_str(),"read");
+
+	if ( infile->IsOpen() ){
+		cout << "OPEN: " << infile->GetName() << endl;
+	}else{
+		return;
+	}
 
 	TTree *fTreeHeader = (TTree*)gDirectory->Get("teposhead");
 	fTreeHeader->SetMakeClass(1);
@@ -129,7 +143,7 @@ void ScanEPOS02(){
 		fTreeNtuple->GetEntry(ien);
 
 		_np = 0;
-		for (int ii=0; ii<1000; ii++){
+		for (int ii=0; ii<5000; ii++){
 			_pid[ii] = 0;
 			_pt[ii] = _eta[ii] = _phi[ii] = 0;
 		}
