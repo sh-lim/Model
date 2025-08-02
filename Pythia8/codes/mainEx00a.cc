@@ -9,9 +9,9 @@
 // Also illustrated output to be plotted by Python/Matplotlib/pyplot.
 
 #include "Pythia8/Pythia.h"
-#include "Pythia8/HeavyIons.h"
 #include "TTree.h"
 #include "TFile.h"
+#include "TLorentzVector.h"
 
 using namespace Pythia8;
 
@@ -25,8 +25,8 @@ int main() {
   // Shorthand for the event record in pythia.
   Event& event = pythia.event;
 
-	// Read in commands from external file.
-	pythia.readFile("mainEx00a.cfg");
+  // Read in commands from external file.
+  pythia.readFile("mainEx00a.cfg");
 
   // Extract settings to be used in the main program.
   int nEvent = pythia.mode("Main:numberOfEvents");
@@ -35,60 +35,29 @@ int main() {
   // Initialize.
   pythia.init();
 
-	float f_b;
+  int i_np;
+  int i_p_id[5000];
+  float f_p_pt[5000];
+  float f_p_eta[5000];
+  float f_p_phi[5000];
+  float f_p_rap[5000];
+  float f_p_vt[5000];
+  //int i_num_dmeson;
 
-	int i_nAbsProj;
-	int i_nDiffProj;
-	int i_nElProj;
 
-	int i_nAbsTarg;
-	int i_nDiffTarg;
-	int i_nElTarg;
-	
-	int i_nCollNDTot;
-	int i_nCollND;
-	int i_nCollSDP;
-	int i_nCollSDT;
-	int i_nCollDD;
-	int i_nCollCD;
-	int i_nCollEL;
+	TFile *outfile = new TFile("Pythia8_event.root","recreate");
 
-	/*
-	int i_p_id[5000];
-	float f_p_pt[5000];
-	float f_p_eta[5000];
-	float f_p_phi[5000];
-	float f_p_vt[5000];
-	*/
+  // Tree output
+  auto T = new TTree("T","Pythia event");
 
-	// Tree output
-	auto T = new TTree("T","Pythia event");
-	T->Branch("f_b",&f_b,"f_b/F");
-
-	T->Branch("i_nAbsProj",&i_nAbsProj,"i_nAbsProj/I");
-	T->Branch("i_nDiffProj",&i_nDiffProj,"i_nDiffProj/I");
-	T->Branch("i_nElProj",&i_nElProj,"i_nElProj/I");
-
-	T->Branch("i_nAbsTarg",&i_nAbsTarg,"i_nAbsTarg/I");
-	T->Branch("i_nDiffTarg",&i_nDiffTarg,"i_nDiffTarg/I");
-	T->Branch("i_nElTarg",&i_nElTarg,"i_nElTarg/I");
-
-	T->Branch("i_nCollNDTot",&i_nCollNDTot,"i_nCollNDTot/I");
-	T->Branch("i_nCollND",&i_nCollND,"i_nCollND/I");
-	T->Branch("i_nCollSDP",&i_nCollSDP,"i_nCollSDP/I");
-	T->Branch("i_nCollSDT",&i_nCollSDT,"i_nCollSDT/I");
-	T->Branch("i_nCollDD",&i_nCollDD,"i_nCollDD/I");
-	T->Branch("i_nCollCD",&i_nCollCD,"i_nCollCD/I");
-	T->Branch("i_nCollEL",&i_nCollEL,"i_nCollEL/I");
-
-	/*
-	T->Branch("np",&i_np,"np/I");
-	T->Branch("p_id",i_p_id,"p_id[np]/I");
-	T->Branch("p_pt",f_p_pt,"p_pt[np]/F");
-	T->Branch("p_eta",f_p_eta,"p_eta[np]/F");
-	T->Branch("p_phi",f_p_phi,"p_phi[np]/F");
-	T->Branch("p_vt",f_p_vt,"p_vt[np]/F");
-	*/
+  T->Branch("np",&i_np,"np/I");
+  T->Branch("p_id",i_p_id,"p_id[np]/I");
+  T->Branch("p_pt",f_p_pt,"p_pt[np]/F");
+  T->Branch("p_eta",f_p_eta,"p_eta[np]/F");
+  T->Branch("p_phi",f_p_phi,"p_phi[np]/F");
+  T->Branch("p_rap",f_p_rap,"p_rap[np]/F");
+  T->Branch("p_vt",f_p_vt,"p_vt[np]/F");
+  //T->Branch("num_dmeson", &i_num_dmeson, "num_dmeson/I");
 
   // Begin event loop.
   int iAbort = 0;
@@ -101,64 +70,65 @@ int main() {
       break;
     }
 
-		f_b = pythia.info.hiInfo->b();
-
-		i_nAbsProj = pythia.info.hiInfo->nAbsProj();
-		i_nDiffProj = pythia.info.hiInfo->nDiffProj();
-		i_nElProj = pythia.info.hiInfo->nElProj();
-
-		i_nAbsTarg = pythia.info.hiInfo->nAbsTarg();
-		i_nDiffTarg = pythia.info.hiInfo->nDiffTarg();
-		i_nElTarg = pythia.info.hiInfo->nElTarg();
-
-		i_nCollNDTot = pythia.info.hiInfo->nCollNDTot();
-		i_nCollND = pythia.info.hiInfo->nCollND();
-		i_nCollSDP = pythia.info.hiInfo->nCollSDP();
-		i_nCollSDT = pythia.info.hiInfo->nCollSDT();
-		i_nCollDD = pythia.info.hiInfo->nCollDD();
-		i_nCollCD = pythia.info.hiInfo->nCollCD();
-		i_nCollEL = pythia.info.hiInfo->nCollEL();
-
-		/*
-		i_np = 0;
+	i_np = 0;
+	//i_num_dmeson=0;
 
     for (int i = 0; i < event.size(); ++i) {
 
 			if ( !(event[i].isFinal()) ) continue;
+	
+			//int id = abs(event[i].id());
 
-			int id = abs(event[i].id());
-
-			if ( !(id==111 || id==211 || id==321 || id==2212) ) continue;
+			// Count the number of D-meson(D0, D+, D-) exising in this event
+			/*
+			if ( id==421 || id==411 )
+			{
+				i_num_dmeson++;
+			}
+			*/
 
 			float tmp_pt = event[i].pT();
 			float tmp_eta = event[i].eta();
 			float tmp_phi = event[i].phi();
+			float tmp_mass = event[i].m();
+			float tmp_t = event[i].tProd();
 
-			if ( fabs(tmp_eta)>5.5 ) continue;
+			TLorentzVector lvec;
+			lvec.SetPtEtaPhiM(tmp_pt, tmp_eta, tmp_phi, tmp_mass);
+
+			float tmp_rap = lvec.Rapidity();
+
+
+			if ( fabs(tmp_rap)>1.0 ) continue;
+			if ( tmp_t>1.0 ) continue;
+			//if ( fabs(tmp_eta)>6.0 ) continue;
 
 			i_p_id[i_np] = event[i].id();
 			f_p_pt[i_np] = tmp_pt;
 			f_p_eta[i_np] = tmp_eta;
 			f_p_phi[i_np] = tmp_phi;
-
-			f_p_vt[i_np] = tprod;
+			f_p_rap[i_np] = tmp_rap;
+			f_p_vt[i_np] = tmp_t;
 
 			i_np++;
 
-			if ( i_np>=2000 ) break;
+			if ( i_np>5000 ) break;
 		}
-		*/
-
+	
 		T->Fill();
 
+		if ((iEvent) % 10000 == 0) {
+			T->AutoSave("SaveSelf");    // 중간 저장
+			T->FlushBaskets();          // 버퍼 비우기
+		}
   }
 
   // Final statistics. Normalize and output histograms.
   pythia.stat();
 
-	TFile *outfile = new TFile("Pythia8_event_mainEx00a.root","recreate");
-	T->Write();
-	outfile->Close();
+  //TFile *outfile = new TFile("Pythia8_event_mainEx00a.root","recreate");
+  T->Write();
+  outfile->Close();
 
   // Done.
   return 0;
