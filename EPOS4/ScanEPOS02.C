@@ -5,7 +5,7 @@
 #include <TTree.h>
 #include <TVector3.h>
 
-#define MAXNUM 50000
+#define MAXNUM 100000
 
 using namespace std;
 
